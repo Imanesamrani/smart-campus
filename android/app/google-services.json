@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "850709853544",
+    "project_id": "my-smart-campus-app-b4ff2",
+    "storage_bucket": "my-smart-campus-app-b4ff2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:850709853544:android:4db007a89cb9d44fd5d2dd",
+        "android_client_info": {
+          "package_name": "com.example.flutter_smart_campus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "850709853544-mjcmt2q4l58tano90vs3dovfqhjni9v7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4xATasBMQtJ9g4LahQkiJGOy15TEcs3M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "850709853544-mjcmt2q4l58tano90vs3dovfqhjni9v7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "850709853544-1onv1eu0hs79df21qm5fmgvkvec6856e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterSmartCampus"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
