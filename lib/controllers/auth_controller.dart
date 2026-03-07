@@ -29,8 +29,9 @@ class AuthController extends ChangeNotifier {
     required String email,
     required String password,
     required String displayName,
-    required String department,
-    String role = 'student',
+    String role = 'étudiant',
+    String? filiere,
+    String? niveau,
   }) async {
     _setLoading(true);
     _clearError();
@@ -40,8 +41,9 @@ class AuthController extends ChangeNotifier {
         email: email.trim(),
         password: password.trim(),
         displayName: displayName.trim(),
-        department: department.trim(),
         role: role,
+        filiere: filiere,
+        niveau: niveau,
       );
 
       if (error != null) {
@@ -121,8 +123,8 @@ class AuthController extends ChangeNotifier {
     return _currentUser?.role == role;
   }
 
-  bool get isStudent => hasRole('student');
-  bool get isTeacher => hasRole('teacher');
+  bool get isStudent => hasRole('étudiant');
+  bool get isTeacher => hasRole('enseignant');
   bool get isAdmin => hasRole('admin');
 
   // Méthodes privées

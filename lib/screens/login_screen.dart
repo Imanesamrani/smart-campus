@@ -60,9 +60,9 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.blue[800]!,
-              Colors.blue[600]!,
-              Colors.blue[400]!,
+              Colors.blue.shade50,
+              Colors.blue.shade100,
+              Colors.grey.shade100,
             ],
           ),
         ),
@@ -71,7 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Card(
-                elevation: 20,
+                elevation: 8,
+                shadowColor: Colors.blue.shade200,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -80,18 +81,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Logo et Titre
+      // Logo et Titre
                       Container(
                         width: 100,
                         height: 100,
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: Colors.blue.shade100,
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.shade200,
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
                         ),
                         child: Icon(
                           Icons.school,
                           size: 60,
-                          color: Colors.blue[800],
+                          color: Colors.blue,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -185,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Mot de passe oublié
                       Align(
-                        alignment: Alignment.centerRight,
+                        alignment: Alignment.center,
                         child: TextButton(
                           onPressed: () {
                             Navigator.push(

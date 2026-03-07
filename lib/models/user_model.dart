@@ -5,8 +5,9 @@ class UserModel {
   final String email;
   final String displayName;
   final String? photoURL;
-  final String role; // student, teacher, admin
-  final String department;
+  final String role; // admin, étudiant, enseignant
+  final String? filiere; // MGSI, IL, SDBDIA, SITCN (seulement pour étudiants)
+  final String? niveau; // 1ère année, 2ème année, 3ème année (seulement pour étudiants)
   final List<String> favoriteRooms;
   final List<String> favoriteBuildings;
   final DateTime createdAt;
@@ -19,7 +20,8 @@ class UserModel {
     required this.displayName,
     this.photoURL,
     required this.role,
-    required this.department,
+    this.filiere,
+    this.niveau,
     required this.favoriteRooms,
     required this.favoriteBuildings,
     required this.createdAt,
@@ -34,8 +36,9 @@ class UserModel {
       email: data['email'] ?? '',
       displayName: data['displayName'] ?? '',
       photoURL: data['photoURL'],
-      role: data['role'] ?? 'student',
-      department: data['department'] ?? '',
+      role: data['role'] ?? 'étudiant',
+      filiere: data['filiere'],
+      niveau: data['niveau'],
       favoriteRooms: List<String>.from(data['favoriteRooms'] ?? []),
       favoriteBuildings: List<String>.from(data['favoriteBuildings'] ?? []),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
@@ -51,7 +54,8 @@ class UserModel {
       'displayName': displayName,
       'photoURL': photoURL,
       'role': role,
-      'department': department,
+      'filiere': filiere,
+      'niveau': niveau,
       'favoriteRooms': favoriteRooms,
       'favoriteBuildings': favoriteBuildings,
       'createdAt': Timestamp.fromDate(createdAt),

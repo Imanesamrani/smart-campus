@@ -28,19 +28,57 @@ class MyApp extends StatelessWidget {
         title: 'Smart Campus',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          useMaterial3: true,
           primarySwatch: Colors.blue,
+          primaryColor: Colors.blue,
+          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
           fontFamily: 'Poppins',
           inputDecorationTheme: InputDecorationTheme(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Colors.blue,
+                width: 1.5,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.blue.shade300,
+                width: 1.5,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Colors.blue,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            labelStyle: const TextStyle(
+              color: Colors.blue,
+              fontWeight: FontWeight.w500,
+            ),
+            hintStyle: TextStyle(
+              color: Colors.grey.shade400,
             ),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 45),
+              minimumSize: const Size(double.infinity, 50),
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              elevation: 3,
+              shadowColor: Colors.blue.withOpacity(0.4),
             ),
           ),
         ),

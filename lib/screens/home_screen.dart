@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../models/user_model.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -14,26 +15,37 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Smart Campus'),
-        backgroundColor: Colors.blue[800],
+        backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        elevation: 2,
         actions: [
           // Menu utilisateur
           PopupMenuButton<String>(
             icon: CircleAvatar(
-              backgroundColor: Colors.blue[300],
+              backgroundColor: Colors.blue.shade200,
               backgroundImage: user?.photoURL != null
                   ? NetworkImage(user!.photoURL!)
                   : null,
               child: user?.photoURL == null
                   ? Text(
                       user?.displayName[0].toUpperCase() ?? 'U',
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     )
                   : null,
             ),
             onSelected: (value) async {
               if (value == 'logout') {
                 await authController.logout();
+              } else if (value == 'profile') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
               }
             },
             itemBuilder: (context) => [
@@ -141,23 +153,36 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              user.department,
-                              style: TextStyle(
-                                color: Colors.blue[800],
-                                fontWeight: FontWeight.w500,
+                          if (user.role == 'étudiant' && user.filiere != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[100],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Filière: ${user.filiere}',
+                                    style: TextStyle(
+                                      color: Colors.blue[800],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Niveau: ${user.niveau}',
+                                    style: TextStyle(
+                                      color: Colors.blue[800],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -213,9 +238,9 @@ class HomeScreen extends StatelessWidget {
 
   String _getRoleMessage(String role) {
     switch (role) {
-      case 'student':
+      case 'étudiant':
         return 'Étudiant';
-      case 'teacher':
+      case 'enseignant':
         return 'Enseignant';
       case 'admin':
         return 'Administrateur';

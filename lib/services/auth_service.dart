@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter/foundation.dart'; // IMPORTANT ! À AJOUTER
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 
 class AuthService {
@@ -54,8 +54,9 @@ class AuthService {
     required String email,
     required String password,
     required String displayName,
-    required String department,
-    String role = 'student',
+    String role = 'étudiant',
+    String? filiere,
+    String? niveau,
   }) async {
     try {
       // ✅ Réappliquer la configuration AVANT chaque inscription
@@ -95,7 +96,8 @@ class AuthService {
           displayName: displayName,
           photoURL: null,
           role: role,
-          department: department,
+          filiere: filiere,
+          niveau: niveau,
           favoriteRooms: [],
           favoriteBuildings: [],
           createdAt: DateTime.now(),
@@ -110,6 +112,11 @@ class AuthService {
         await _secureStorage.write(key: 'email', value: email);
         
         print('✅ Inscription réussie pour $email');
+        
+        // Déconnexion pour redirection vers login
+        await _auth.signOut();
+        print('✅ Utilisateur déconnecté - Redirection vers login');
+        
         return null;
       }
       return 'Erreur lors de la création du compte';
@@ -209,4 +216,31 @@ class AuthService {
       return 'Erreur inattendue: $e';
     }
   }
+
+  // Mettre à jour le profil utilisateur
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection('users').doc(uid).update(data);
+      print('✅ Profil mis à jour pour $uid');
+    } catch (e) {
+      print('❌ Erreur mise à jour profil: $e');
+      throw Exception('Erreur lors de la mise à jour du profil: $e');
+    }
+  }
+
+  // Mettre à jour le nom d'affichage
+  Future<void> updateDisplayName(String newName) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(newName);
+        await user.reload();
+        print('✅ Nom d\'affichage mis à jour');
+      }
+    } catch (e) {
+      print('❌ Erreur mise à jour nom: $e');
+      throw Exception('Erreur lors de la mise à jour du nom: $e');
+    }
+  }
+
 }

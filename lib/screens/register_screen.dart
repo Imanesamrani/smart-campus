@@ -15,26 +15,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _displayNameController = TextEditingController();
-  final _departmentController = TextEditingController();
   
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String _selectedRole = 'student';
+  String _selectedRole = 'étudiant';
+  String? _selectedFiliere;
+  String? _selectedNiveau;
   
   final List<String> _roles = [
-    'student',
-    'teacher',
+    'étudiant',
+    'enseignant',
+    'admin',
   ];
   
-  final List<String> _departments = [
-    'Informatique',
-    'Mathématiques',
-    'Physique',
-    'Chimie',
-    'Biologie',
-    'Génie Civil',
-    'Électronique',
-    'Gestion',
+  final List<String> _filieres = [
+    'MGSI',
+    'IL',
+    'SDBDIA',
+    'SITCN',
+  ];
+  
+  final List<String> _niveaux = [
+    '1ère année',
+    '2ème année',
+    '3ème année',
   ];
 
   @override
@@ -43,7 +47,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _displayNameController.dispose();
-    _departmentController.dispose();
     super.dispose();
   }
 
@@ -51,12 +54,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_formKey.currentState!.validate()) {
       final authController = context.read<AuthController>();
       
+      // Pour les étudiants, vérifier que filière et niveau sont sélectionnés
+      if (_selectedRole == 'étudiant' && (_selectedFiliere == null || _selectedNiveau == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Veuillez sélectionner une filière et un niveau'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+      
       bool success = await authController.register(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         displayName: _displayNameController.text.trim(),
-        department: _departmentController.text,
         role: _selectedRole,
+        filiere: _selectedFiliere,
+        niveau: _selectedNiveau,
       );
 
       if (success && mounted) {
@@ -83,9 +98,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inscription'),
-        backgroundColor: Colors.blue[800],
+        backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        elevation: 0,
+        elevation: 2,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -93,9 +108,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.blue[800]!,
-              Colors.blue[600]!,
-              Colors.white,
+              Colors.blue.shade50,
+              Colors.blue.shade100,
+              Colors.grey.shade100,
             ],
             stops: const [0.0, 0.3, 1.0],
           ),
@@ -104,7 +119,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Card(
-              elevation: 10,
+              elevation: 8,
+              shadowColor: Colors.blue.shade200,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -197,51 +213,93 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           return DropdownMenuItem(
                             value: role,
                             child: Text(
-                              role == 'student' ? 'Étudiant' : 'Enseignant',
+                              role == 'étudiant' ? 'Étudiant' : (role == 'enseignant' ? 'Enseignant' : 'Admin'),
                             ),
                           );
                         }).toList(),
                         onChanged: (value) {
                           setState(() {
                             _selectedRole = value!;
+                            // Réinitialiser filière et niveau si le rôle change
+                            if (value != 'étudiant') {
+                              _selectedFiliere = null;
+                              _selectedNiveau = null;
+                            }
                           });
                         },
                       ),
                       const SizedBox(height: 16),
 
-                      // Département
-                      DropdownButtonFormField<String>(
-                        initialValue: _departmentController.text.isEmpty
-                            ? null
-                            : _departmentController.text,
-                        decoration: InputDecoration(
-                          labelText: 'Département',
-                          prefixIcon: const Icon(Icons.school_outlined),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      // Filière (seulement pour les étudiants)
+                      if (_selectedRole == 'étudiant') ...
+                        [
+                          DropdownButtonFormField<String>(
+                            value: _selectedFiliere,
+                            decoration: InputDecoration(
+                              labelText: 'Filière',
+                              prefixIcon: const Icon(Icons.school_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            items: _filieres.map((filiere) {
+                              return DropdownMenuItem(
+                                value: filiere,
+                                child: Text(filiere),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedFiliere = value;
+                              });
+                            },
+                            validator: _selectedRole == 'étudiant'
+                                ? (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Veuillez sélectionner une filière';
+                                    }
+                                    return null;
+                                  }
+                                : null,
                           ),
-                          filled: true,
-                          fillColor: Colors.grey[50],
-                        ),
-                        items: _departments.map((dept) {
-                          return DropdownMenuItem(
-                            value: dept,
-                            child: Text(dept),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _departmentController.text = value ?? '';
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez sélectionner un département';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
+                          const SizedBox(height: 16),
+                          
+                          // Niveau (seulement pour les étudiants)
+                          DropdownButtonFormField<String>(
+                            value: _selectedNiveau,
+                            decoration: InputDecoration(
+                              labelText: 'Niveau',
+                              prefixIcon: const Icon(Icons.trending_up_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            items: _niveaux.map((niveau) {
+                              return DropdownMenuItem(
+                                value: niveau,
+                                child: Text(niveau),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedNiveau = value;
+                              });
+                            },
+                            validator: _selectedRole == 'étudiant'
+                                ? (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Veuillez sélectionner un niveau';
+                                    }
+                                    return null;
+                                  }
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
 
                       // Mot de passe
                       TextFormField(
