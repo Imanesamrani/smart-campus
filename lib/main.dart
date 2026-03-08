@@ -2,19 +2,23 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'controllers/auth_controller.dart';
-import 'controllers/room_controller.dart';
 import 'controllers/favorite_controller.dart';
+import 'controllers/map_controller.dart';
+import 'controllers/room_controller.dart';
 import 'controllers/user_controller.dart';
-import 'models/user_model.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'controllers/timetable_controller.dart';
 import 'firebase_options.dart';
+import 'models/user_model.dart';
+import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   runApp(const MyApp());
 }
 
@@ -29,10 +33,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RoomController()),
         ChangeNotifierProvider(create: (_) => FavoriteController()),
         ChangeNotifierProvider(create: (_) => UserController()),
+        ChangeNotifierProvider(create: (_) => CampusMapController()),
+        ChangeNotifierProvider(create: (_) => TimetableController()),
       ],
       child: MaterialApp(
-        title: 'Smart Campus',
         debugShowCheckedModeBanner: false,
+        title: 'Smart Campus Companion',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(
@@ -42,8 +48,7 @@ class MyApp extends StatelessWidget {
           primaryColor: const Color(0xFF0066CC),
           scaffoldBackgroundColor: const Color(0xFFFAFBFC),
           fontFamily: 'Poppins',
-          
-          // Text Themes
+
           textTheme: const TextTheme(
             displayLarge: TextStyle(
               fontSize: 32,
@@ -77,7 +82,6 @@ class MyApp extends StatelessWidget {
             ),
           ),
 
-          // Input Decoration Theme
           inputDecorationTheme: InputDecorationTheme(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -118,15 +122,14 @@ class MyApp extends StatelessWidget {
               fontWeight: FontWeight.w500,
               fontSize: 14,
             ),
-            hintStyle: TextStyle(
-              color: const Color(0xFF999999),
+            hintStyle: const TextStyle(
+              color: Color(0xFF999999),
               fontWeight: FontWeight.w400,
             ),
             prefixIconColor: const Color(0xFF999999),
             suffixIconColor: const Color(0xFF999999),
           ),
 
-          // Elevated Button Theme
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 54),
@@ -135,7 +138,7 @@ class MyApp extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
-              elevation: 2,
+              elevation: 3,
               shadowColor: const Color(0xFF0066CC).withOpacity(0.3),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               textStyle: const TextStyle(
@@ -145,7 +148,6 @@ class MyApp extends StatelessWidget {
             ),
           ),
 
-          // Card Theme
           cardTheme: CardThemeData(
             elevation: 2,
             shadowColor: Colors.black.withOpacity(0.08),
@@ -156,7 +158,6 @@ class MyApp extends StatelessWidget {
             margin: EdgeInsets.zero,
           ),
 
-          // App Bar Theme
           appBarTheme: const AppBarTheme(
             backgroundColor: Color(0xFF0066CC),
             foregroundColor: Colors.white,
@@ -169,7 +170,6 @@ class MyApp extends StatelessWidget {
             ),
           ),
 
-          // Floating Action Button Theme
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
             backgroundColor: Color(0xFF0066CC),
             foregroundColor: Colors.white,

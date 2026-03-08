@@ -10,6 +10,7 @@ import 'user_management_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'jobs_screen.dart';
 import 'announcements_screen.dart';
+import 'admin_timetable_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,7 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialiser le FavoriteController avec l'ID de l'utilisateur
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authController = context.read<AuthController>();
       final favoriteController = context.read<FavoriteController>();
@@ -34,11 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
         favoriteController.loadFavorites();
       }
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   String _getRoleLabel(String role) {
@@ -121,13 +116,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Header avec bienvenue et bouton de déconnexion intégré
           Container(
             color: Colors.white,
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                // Avatar
                 Container(
                   width: 60,
                   height: 60,
@@ -162,20 +155,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       : null,
                 ),
                 const SizedBox(width: 16),
-                
-                // Informations utilisateur (prenant l'espace disponible)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Text(
-                            'Bonjour, ${user.displayName}!',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                          Expanded(
+                            child: Text(
+                              'Bonjour, ${user.displayName}!',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -207,8 +201,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                
-                // Bouton de déconnexion à droite
                 IconButton(
                   icon: const Icon(Icons.logout, color: Color(0xFF1E293B)),
                   onPressed: () async {
@@ -216,18 +208,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   tooltip: 'Déconnexion',
                 ),
-                const SizedBox(width: 16),
               ],
             ),
           ),
-
-          // Menu principal
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Section des fonctionnalités principales
                 const Text(
                   'Fonctionnalités principales',
                   style: TextStyle(
@@ -238,16 +226,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildMainFeatureGrid(user),
-
                 const SizedBox(height: 24),
-
-                // Section d'information pour l'utilisateur
                 if (user.role == 'étudiant' && user.filiere != null)
                   _buildStudentInfoCard(user),
-
                 const SizedBox(height: 16),
-
-                // Informations campus
                 _buildCampusInfoCard(),
               ],
             ),
@@ -296,12 +278,20 @@ class _HomeScreenState extends State<HomeScreen> {
           isEnabled: true,
         ),
         _FeatureItem(
+          icon: Icons.schedule,
+          title: 'Gérer les emplois du temps',
+          subtitle: 'Importer et gérer les emplois du temps',
+          color: const Color(0xFF5E35B1),
+          route: const AdminTimetableHomeScreen(),
+          isEnabled: true,
+        ),
+        _FeatureItem(
           icon: Icons.work,
           title: 'Gérer les Emplois',
           subtitle: 'Ajouter et modifier les emplois (Bientôt disponible)',
           color: const Color(0xFF00897B),
           route: const JobsScreen(),
-          isEnabled: false, // Désactivé - frontend uniquement
+          isEnabled: false,
         ),
         _FeatureItem(
           icon: Icons.notifications,
@@ -309,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
           subtitle: 'Publier des annonces (Bientôt disponible)',
           color: const Color(0xFFFFB300),
           route: const AnnouncementsScreen(),
-          isEnabled: false, // Désactivé - frontend uniquement
+          isEnabled: false,
         ),
       ]);
     }
@@ -332,19 +322,20 @@ class _HomeScreenState extends State<HomeScreen> {
           subtitle: feature.subtitle,
           color: feature.color,
           isEnabled: feature.isEnabled,
-          onTap: feature.isEnabled ? () {
-            // Initialiser le FavoriteController pour la route des favoris
-            if (feature.route is FavoritesScreen) {
-              final favoriteController = context.read<FavoriteController>();
-              favoriteController.setUserId(user.uid);
-              favoriteController.loadFavorites();
-            }
-            
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => feature.route),
-            );
-          } : null, // Pas d'action si désactivé
+          onTap: feature.isEnabled
+              ? () {
+                  if (feature.route is FavoritesScreen) {
+                    final favoriteController = context.read<FavoriteController>();
+                    favoriteController.setUserId(user.uid);
+                    favoriteController.loadFavorites();
+                  }
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => feature.route),
+                  );
+                }
+              : null,
         );
       },
     );
@@ -381,7 +372,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Icône avec opacité réduite si désactivé
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -389,8 +379,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      icon, 
-                      color: isEnabled ? color : color.withOpacity(0.3), 
+                      icon,
+                      color: isEnabled ? color : color.withOpacity(0.3),
                       size: 24,
                     ),
                   ),
@@ -402,8 +392,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: isEnabled 
-                              ? const Color(0xFF1E293B) 
+                          color: isEnabled
+                              ? const Color(0xFF1E293B)
                               : const Color(0xFF1E293B).withOpacity(0.3),
                         ),
                         maxLines: 1,
@@ -414,8 +404,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         subtitle,
                         style: TextStyle(
                           fontSize: 11,
-                          color: isEnabled 
-                              ? Colors.grey.shade600 
+                          color: isEnabled
+                              ? Colors.grey.shade600
                               : Colors.grey.shade400,
                         ),
                         maxLines: 2,
@@ -426,7 +416,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            // Badge "Bientôt" pour les cartes désactivées
             if (!isEnabled)
               Positioned(
                 top: 8,
@@ -495,7 +484,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildInfoRow('Filière', user.filiere ?? 'Non spécifié'),
                 const SizedBox(height: 8),
                 _buildInfoRow('Niveau', user.niveau ?? 'Non spécifié'),
-                const SizedBox(height: 8),
               ],
             ),
           ),
