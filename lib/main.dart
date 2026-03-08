@@ -35,57 +35,145 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
-          primarySwatch: Colors.blue,
-          primaryColor: Colors.blue,
-          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF0066CC),
+            brightness: Brightness.light,
+          ),
+          primaryColor: const Color(0xFF0066CC),
+          scaffoldBackgroundColor: const Color(0xFFFAFBFC),
           fontFamily: 'Poppins',
+          
+          // Text Themes
+          textTheme: const TextTheme(
+            displayLarge: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+            ),
+            displayMedium: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+            ),
+            headlineSmall: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A1A1A),
+            ),
+            titleLarge: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF333333),
+            ),
+            bodyLarge: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF555555),
+            ),
+            bodyMedium: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Color(0xFF666666),
+            ),
+          ),
+
+          // Input Decoration Theme
           inputDecorationTheme: InputDecorationTheme(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(
-                color: Colors.blue,
+                color: Color(0xFFE0E8F1),
                 width: 1.5,
               ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Colors.blue.shade300,
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: Color(0xFFE0E8F1),
                 width: 1.5,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(
-                color: Colors.blue,
+                color: Color(0xFF0066CC),
                 width: 2,
               ),
             ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
+              ),
+            ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: const Color(0xFFF8FBFF),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
+              horizontal: 18,
               vertical: 16,
             ),
             labelStyle: const TextStyle(
-              color: Colors.blue,
+              color: Color(0xFF666666),
               fontWeight: FontWeight.w500,
+              fontSize: 14,
             ),
             hintStyle: TextStyle(
-              color: Colors.grey.shade400,
+              color: const Color(0xFF999999),
+              fontWeight: FontWeight.w400,
             ),
+            prefixIconColor: const Color(0xFF999999),
+            suffixIconColor: const Color(0xFF999999),
           ),
+
+          // Elevated Button Theme
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 50),
-              backgroundColor: Colors.blue,
+              minimumSize: const Size(double.infinity, 54),
+              backgroundColor: const Color(0xFF0066CC),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
-              elevation: 3,
-              shadowColor: Colors.blue.withOpacity(0.4),
+              elevation: 2,
+              shadowColor: const Color(0xFF0066CC).withOpacity(0.3),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+          ),
+
+          // Card Theme
+          cardTheme: CardThemeData(
+            elevation: 2,
+            shadowColor: Colors.black.withOpacity(0.08),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            color: Colors.white,
+            margin: EdgeInsets.zero,
+          ),
+
+          // App Bar Theme
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF0066CC),
+            foregroundColor: Colors.white,
+            elevation: 1,
+            centerTitle: false,
+            titleTextStyle: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+
+          // Floating Action Button Theme
+          floatingActionButtonTheme: const FloatingActionButtonThemeData(
+            backgroundColor: Color(0xFF0066CC),
+            foregroundColor: Colors.white,
+            elevation: 4,
           ),
         ),
         home: Consumer<AuthController>(

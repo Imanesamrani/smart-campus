@@ -55,231 +55,227 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.blue.shade50,
-              Colors.blue.shade100,
-              Colors.grey.shade100,
+              Color(0xFFF8FBFF),
+              Color(0xFFF0F5FF),
+              Color(0xFFE8F0FF),
             ],
           ),
         ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Card(
-                elevation: 8,
-                shadowColor: Colors.blue.shade200,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-      // Logo et Titre
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade100,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.shade200,
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.school,
-                          size: 60,
-                          color: Colors.blue,
-                        ),
+              padding: const EdgeInsets.all(28.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo avec animation
+                  Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF0066CC),
+                          Color(0xFF0052A3),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Smart Campus',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0066CC).withOpacity(0.25),
+                          blurRadius: 20,
+                          spreadRadius: 4,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Connectez-vous à votre espace éducatif',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.school_rounded,
+                      size: 50,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Titre
+                  Text(
+                    'Smart Campus',
+                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                          color: const Color(0xFF1A1A1A),
+                          fontWeight: FontWeight.w700,
                         ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Formulaire
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            // Email
-                            TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                labelText: 'Email',
-                                hintText: 'exemple@campus.com',
-                                prefixIcon: const Icon(Icons.email_outlined),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez entrer votre email';
-                                }
-                                if (!value.contains('@')) {
-                                  return 'Email invalide';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Mot de passe
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                labelText: 'Mot de passe',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez entrer votre mot de passe';
-                                }
-                                if (value.length < 6) {
-                                  return 'Le mot de passe doit contenir au moins 6 caractères';
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  // Subtitle
+                  Text(
+                    'Gérez votre vie scolaire en un clic',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: const Color(0xFF666666),
+                          fontWeight: FontWeight.w400,
                         ),
-                      ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 48),
 
-                      const SizedBox(height: 12),
-
-                      // Mot de passe oublié
-                      Align(
-                        alignment: Alignment.center,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ForgotPasswordScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text('Mot de passe oublié ?'),
+                  // Card avec formulaire
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0066CC).withOpacity(0.12),
+                          blurRadius: 24,
+                          spreadRadius: 0,
                         ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Bouton de connexion
-                      Consumer<AuthController>(
-                        builder: (context, authController, child) {
-                          return SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: authController.isLoading
-                                  ? null
-                                  : _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue[800],
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 3,
-                              ),
-                              child: authController.isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'SE CONNECTER',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Lien vers l'inscription
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(32),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
                         children: [
-                          Text(
-                            'Pas encore de compte ? ',
-                            style: TextStyle(color: Colors.grey[600]),
+                          // Email Input
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              labelText: 'Adresse Email',
+                              hintText: 'votre@email.com',
+                              prefixIcon: const Icon(Icons.mail_outline_rounded),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Veuillez entrer votre email';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Email invalide';
+                              }
+                              return null;
+                            },
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RegisterScreen(),
+                          const SizedBox(height: 20),
+
+                          // Password Input
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              labelText: 'Mot de passe',
+                              hintText: '••••••••',
+                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_rounded
+                                      : Icons.visibility_rounded,
                                 ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Veuillez entrer votre mot de passe';
+                              }
+                              if (value.length < 6) {
+                                return 'Minimum 6 caractères';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Forgot Password Link
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ForgotPasswordScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'Mot de passe oublié ?',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: const Color(0xFF0066CC),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Login Button
+                          Consumer<AuthController>(
+                            builder: (context, authController, child) {
+                              return ElevatedButton(
+                                onPressed: authController.isLoading
+                                    ? null
+                                    : _handleLogin,
+                                child: authController.isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                    : const Text('SE CONNECTER'),
                               );
                             },
-                            child: const Text(
-                              'S\'inscrire',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                           ),
                         ],
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Register Link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Pas encore de compte ? ',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: const Color(0xFF666666),
+                            ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'S\'inscrire',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: const Color(0xFF0066CC),
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ),
