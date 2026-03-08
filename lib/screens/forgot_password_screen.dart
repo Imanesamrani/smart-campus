@@ -122,7 +122,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              
               // Texte explicatif
               const Text(
                 'Réinitialisation du mot de passe',
@@ -142,7 +141,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-
               // Formulaire
               Form(
                 key: _formKey,
@@ -171,7 +169,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
               // Bouton d'envoi
               Consumer<AuthController>(
                 builder: (context, authController, child) {
