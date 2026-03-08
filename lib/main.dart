@@ -1,12 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'controllers/auth_controller.dart';
 import 'controllers/favorite_controller.dart';
 import 'controllers/map_controller.dart';
 import 'controllers/room_controller.dart';
 import 'controllers/user_controller.dart';
+import 'controllers/timetable_controller.dart';
+
 import 'firebase_options.dart';
 import 'models/user_model.dart';
 import 'screens/home_screen.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FavoriteController()),
         ChangeNotifierProvider(create: (_) => UserController()),
         ChangeNotifierProvider(create: (_) => CampusMapController()),
+        ChangeNotifierProvider(create: (_) => TimetableController()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

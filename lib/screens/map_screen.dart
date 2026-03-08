@@ -7,7 +7,12 @@ import '../controllers/map_controller.dart';
 import '../models/building.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final String? targetBuildingName;
+
+  const MapScreen({
+    super.key,
+    this.targetBuildingName,
+  });
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -18,7 +23,9 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CampusMapController>().loadBuildings();
+      context.read<CampusMapController>().loadBuildings(
+            targetBuildingName: widget.targetBuildingName,
+          );
     });
   }
 
@@ -40,63 +47,67 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _showBuildingInfo(Building building) {
-  final servicesText = building.services.isEmpty
-      ? 'Aucun service'
-      : building.services.join(', ');
+    final servicesText =
+        building.services.isEmpty ? 'Aucun service' : building.services.join(', ');
 
-  final openingHoursText = building.openingHours.isEmpty
-      ? 'Non renseigné'
-      : building.openingHours.entries
-          .map((entry) => '${entry.key} : ${entry.value}')
-          .join('\n');
+    final openingHoursText = building.openingHours.isEmpty
+        ? 'Non renseigné'
+        : building.openingHours.entries
+            .map((entry) => '${entry.key} : ${entry.value}')
+            .join('\n');
 
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(building.name),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Code : ${building.code}'),
-            Text('Adresse : ${building.address}'),
-            Text('Étages : ${building.floors}'),
-            const SizedBox(height: 8),
-            Text('Description : ${building.description}'),
-            const SizedBox(height: 12),
-            const Text(
-              'Services :',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(servicesText),
-            const SizedBox(height: 12),
-            const Text(
-              "Heures d'ouverture :",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(openingHoursText),
-          ],
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(building.name),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Code : ${building.code}'),
+              Text('Adresse : ${building.address}'),
+              Text('Étages : ${building.floors}'),
+              const SizedBox(height: 8),
+              Text('Description : ${building.description}'),
+              const SizedBox(height: 12),
+              const Text(
+                'Services :',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(servicesText),
+              const SizedBox(height: 12),
+              const Text(
+                "Heures d'ouverture :",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(openingHoursText),
+            ],
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer'),
+          ),
+          ElevatedButton(
+            onPressed: () => _openDirections(building),
+            child: const Text('Itinéraire'),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Fermer'),
-        ),
-        ElevatedButton(
-          onPressed: () => _openDirections(building),
-          child: const Text('Itinéraire'),
-        ),
-      ],
-    ),
-  );
-}
-       
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<CampusMapController>();
+
+    final centerLat = controller.selectedBuilding?.latitude ??
+        (controller.buildings.isNotEmpty ? controller.buildings.first.latitude : 33.5731);
+
+    final centerLng = controller.selectedBuilding?.longitude ??
+        (controller.buildings.isNotEmpty ? controller.buildings.first.longitude : -7.5898);
 
     return Scaffold(
       appBar: AppBar(
@@ -121,11 +132,8 @@ class _MapScreenState extends State<MapScreen> {
                     )
                   : FlutterMap(
                       options: MapOptions(
-                        initialCenter: LatLng(
-                          controller.buildings.first.latitude,
-                          controller.buildings.first.longitude,
-                        ),
-                        initialZoom: 16,
+                        initialCenter: LatLng(centerLat, centerLng),
+                        initialZoom: 17,
                       ),
                       children: [
                         TileLayer(
@@ -136,20 +144,22 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                         MarkerLayer(
                           markers: controller.buildings.map((building) {
+                            final isTarget =
+                                controller.selectedBuilding?.id == building.id;
+
                             return Marker(
-                              point:
-                                  LatLng(building.latitude, building.longitude),
+                              point: LatLng(building.latitude, building.longitude),
                               width: 120,
-                              height: 80,
+                              height: 85,
                               child: GestureDetector(
                                 onTap: () => _showBuildingInfo(building),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.location_on,
-                                      color: Colors.red,
-                                      size: 38,
+                                      color: isTarget ? Colors.blue : Colors.red,
+                                      size: isTarget ? 42 : 38,
                                     ),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -157,8 +167,16 @@ class _MapScreenState extends State<MapScreen> {
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: isTarget
+                                            ? Colors.blue.shade50
+                                            : Colors.white,
                                         borderRadius: BorderRadius.circular(8),
+                                        border: isTarget
+                                            ? Border.all(
+                                                color: Colors.blue,
+                                                width: 1.5,
+                                              )
+                                            : null,
                                         boxShadow: const [
                                           BoxShadow(
                                             blurRadius: 3,
@@ -169,9 +187,12 @@ class _MapScreenState extends State<MapScreen> {
                                       child: Text(
                                         building.name,
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
+                                          color: isTarget
+                                              ? Colors.blue.shade800
+                                              : Colors.black,
                                         ),
                                       ),
                                     ),

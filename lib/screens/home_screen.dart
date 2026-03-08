@@ -8,6 +8,7 @@ import 'rooms_list_screen.dart';
 import 'favorites_screen.dart';
 import 'user_management_screen.dart';
 import 'admin_dashboard_screen.dart';
+import 'admin_timetable_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -295,6 +296,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => const AdminDashboardScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildFeatureCard(
+                icon: Icons.schedule,
+                title: 'Gérer les emplois du temps',
+                subtitle: 'Importer et gérer les emplois du temps',
+                color: Colors.deepPurple,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminTimetableHomeScreen(),
                     ),
                   );
                 },

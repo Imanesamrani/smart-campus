@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/room_model.dart';
 import '../controllers/favorite_controller.dart';
 import '../controllers/auth_controller.dart';
-
+import '../screens/map_screen.dart';
 class RoomDetailsScreen extends StatefulWidget {
   final RoomModel room;
 
@@ -145,13 +145,15 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('📍 Ouverture de la carte...'),
-                            duration: Duration(seconds: 2),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MapScreen(
+                            targetBuildingName: widget.room.building,
                           ),
-                        );
-                      },
+                        ),
+                      );
+                    },
                       icon: const Icon(Icons.map),
                       label: const Text('Voir sur la carte'),
                       style: ElevatedButton.styleFrom(
