@@ -1,10 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/favorite_controller.dart';
 import '../models/user_model.dart';
+import 'profile_screen.dart';
+import 'rooms_list_screen.dart';
+import 'favorites_screen.dart';
+import 'user_management_screen.dart';
+import 'admin_dashboard_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialiser le FavoriteController avec l'ID de l'utilisateur
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authController = context.read<AuthController>();
+      final favoriteController = context.read<FavoriteController>();
+
+      if (authController.currentUser != null) {
+        favoriteController.setUserId(authController.currentUser!.uid);
+        favoriteController.loadFavorites();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,26 +40,37 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Smart Campus'),
-        backgroundColor: Colors.blue[800],
+        backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        elevation: 2,
         actions: [
           // Menu utilisateur
           PopupMenuButton<String>(
             icon: CircleAvatar(
-              backgroundColor: Colors.blue[300],
+              backgroundColor: Colors.blue.shade200,
               backgroundImage: user?.photoURL != null
                   ? NetworkImage(user!.photoURL!)
                   : null,
               child: user?.photoURL == null
                   ? Text(
                       user?.displayName[0].toUpperCase() ?? 'U',
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     )
                   : null,
             ),
             onSelected: (value) async {
               if (value == 'logout') {
                 await authController.logout();
+              } else if (value == 'profile') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
               }
             },
             itemBuilder: (context) => [
@@ -72,12 +109,12 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: user != null
-          ? _buildDashboard(user)
+          ? _buildDashboard(context, user)
           : const Center(child: CircularProgressIndicator()),
     );
   }
 
-  Widget _buildDashboard(UserModel user) {
+  Widget _buildDashboard(BuildContext context, UserModel user) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -141,23 +178,36 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              user.department,
-                              style: TextStyle(
-                                color: Colors.blue[800],
-                                fontWeight: FontWeight.w500,
+                          if (user.role == 'étudiant' && user.filiere != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[100],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Filière: ${user.filiere}',
+                                    style: TextStyle(
+                                      color: Colors.blue[800],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Niveau: ${user.niveau}',
+                                    style: TextStyle(
+                                      color: Colors.blue[800],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -169,7 +219,7 @@ class HomeScreen extends StatelessWidget {
 
             // Section des fonctionnalités principales (Personne 1)
             const Text(
-              'Recherche de salles',
+              'Gestion des salles',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -177,34 +227,81 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildFeatureCard(
-              icon: Icons.search,
-              title: 'Rechercher une salle',
-              subtitle: 'Trouvez la salle idéale pour vos cours',
-              color: Colors.blue,
-              onTap: () {
-                // Naviguer vers la recherche de salles
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildFeatureCard(
               icon: Icons.meeting_room,
               title: 'Liste des salles',
-              subtitle: 'Voir toutes les salles disponibles',
-              color: Colors.green,
+              subtitle: 'Voir toutes les salles disponibles du campus',
+              color: Colors.blue,
               onTap: () {
-                // Naviguer vers la liste des salles
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RoomsListScreen(),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 8),
             _buildFeatureCard(
               icon: Icons.favorite,
               title: 'Mes favoris',
-              subtitle: '${user.favoriteRooms.length} salles favorites',
+              subtitle: 'Accéder à vos salles préférées',
               color: Colors.red,
               onTap: () {
-                // Naviguer vers les favoris
+                // Initialiser le FavoriteController avec l'ID de l'utilisateur
+                final favoriteController = context.read<FavoriteController>();
+                favoriteController.setUserId(user.uid);
+                favoriteController.loadFavorites();
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FavoritesScreen(),
+                  ),
+                );
               },
             ),
+            if (user.role == 'admin') ...[
+              const SizedBox(height: 20),
+              const Text(
+                'Gestion Administrative',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureCard(
+                icon: Icons.people_outline,
+                title: 'Gérer les Utilisateurs',
+                subtitle: 'Consulter, modifier ou supprimer des utilisateurs',
+                color: Colors.purple,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const UserManagementScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildFeatureCard(
+                icon: Icons.meeting_room,
+                title: 'Gérer les Salles',
+                subtitle: 'Ajouter, modifier ou supprimer des salles',
+                color: Colors.orange,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminDashboardScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              
+            ],
           ],
         ),
       ),
@@ -213,9 +310,9 @@ class HomeScreen extends StatelessWidget {
 
   String _getRoleMessage(String role) {
     switch (role) {
-      case 'student':
+      case 'étudiant':
         return 'Étudiant';
-      case 'teacher':
+      case 'enseignant':
         return 'Enseignant';
       case 'admin':
         return 'Administrateur';
@@ -240,7 +337,7 @@ class HomeScreen extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color),
