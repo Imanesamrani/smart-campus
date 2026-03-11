@@ -3,15 +3,18 @@ import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/favorite_controller.dart';
 import '../models/user_model.dart';
+import '../services/notification_service.dart';
 import 'profile_screen.dart';
 import 'rooms_list_screen.dart';
 import 'favorites_screen.dart';
 import 'user_management_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'jobs_screen.dart';
-import 'announcements_screen.dart';
 import 'admin_timetable_home_screen.dart';
-
+import 'notifications_screen.dart';
+import 'admin_announcements_screen.dart';
+import 'announcement_screen.dart';
+import 'my_timetables_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -60,6 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return '👤';
     }
+  }
+
+  bool _showTimetableNotifications(UserModel user) {
+    return user.role == 'étudiant' || user.role == 'enseignant';
   }
 
   @override
@@ -201,6 +208,58 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                if (_showTimetableNotifications(user))
+                  StreamBuilder<int>(
+                    stream: NotificationService().unreadCount(user),
+                    builder: (context, snapshot) {
+                      final unreadCount = snapshot.data ?? 0;
+
+                      return Stack(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.notifications_outlined,
+                              color: Color(0xFF1E293B),
+                            ),
+                            tooltip: 'Notifications',
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const NotificationsScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                          if (unreadCount > 0)
+                            Positioned(
+                              right: 6,
+                              top: 6,
+                              child: Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 18,
+                                  minHeight: 18,
+                                ),
+                                child: Text(
+                                  unreadCount > 9 ? '9+' : unreadCount.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Color(0xFF1E293B)),
                   onPressed: () async {
@@ -216,6 +275,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (_showTimetableNotifications(user))
+                  _buildTimetableNotificationCard(user),
+                if (_showTimetableNotifications(user))
+                  const SizedBox(height: 20),
                 const Text(
                   'Fonctionnalités principales',
                   style: TextStyle(
@@ -239,6 +302,99 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildTimetableNotificationCard(UserModel user) {
+    return StreamBuilder<int>(
+      stream: NotificationService().unreadCount(user),
+      builder: (context, snapshot) {
+        final unreadCount = snapshot.data ?? 0;
+
+        if (unreadCount == 0) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF5E35B1),
+                Color(0xFF7E57C2),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF5E35B1).withOpacity(0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.schedule,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Nouvelle mise à jour disponible',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      unreadCount == 1
+                          ? 'Vous avez 1 notification liée à votre emploi du temps.'
+                          : 'Vous avez $unreadCount notifications liées à votre emploi du temps.',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF5E35B1),
+                  minimumSize: const Size(90, 42),
+                ),
+                child: const Text('Voir'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildMainFeatureGrid(UserModel user) {
     final features = [
       _FeatureItem(
@@ -258,6 +414,28 @@ class _HomeScreenState extends State<HomeScreen> {
         isEnabled: true,
       ),
     ];
+
+    if (user.role == 'étudiant' || user.role == 'enseignant') {
+      features.addAll([
+        _FeatureItem(
+          icon: Icons.campaign,
+          title: 'Mes annonces',
+          subtitle: 'Voir les annonces qui vous concernent',
+          color: const Color(0xFFFF9800),
+          route: const AnnouncementScreen(),
+          isEnabled: true,
+        ),
+        
+        _FeatureItem(
+          icon: Icons.schedule,
+          title: 'Mes emplois',
+          subtitle: 'Consulter mon emploi du temps',
+          color: const Color(0xFF5E35B1),
+          route: const MyTimetablesScreen(),
+          isEnabled: true,
+        ),
+      ]);
+    }
 
     if (user.role == 'admin') {
       features.addAll([
@@ -296,10 +474,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _FeatureItem(
           icon: Icons.notifications,
           title: 'Gérer les Annonces',
-          subtitle: 'Publier des annonces (Bientôt disponible)',
+          subtitle: 'Publier, modifier et supprimer les annonces',
           color: const Color(0xFFFFB300),
-          route: const AnnouncementsScreen(),
-          isEnabled: false,
+          route: const AdminAnnouncementsScreen(),
+          isEnabled: true,
         ),
       ]);
     }
@@ -566,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Maintenance des salles A et B ce weekend',
+                  'Consultez régulièrement vos annonces et notifications académiques.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,

@@ -24,19 +24,48 @@ class TimetableService {
     final storagePath =
         'timetables/students/${safeFiliere}_${safeNiveau}_${timestamp}_$fileName';
 
+    print('1. Début upload étudiant');
+
     final ref = _storage.ref().child(storagePath);
 
     if (fileBytes != null) {
-      await ref.putData(fileBytes);
+      print('2. Upload avec bytes');
+
+      await ref.putData(
+        fileBytes,
+        SettableMetadata(contentType: 'application/pdf'),
+      ).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          throw Exception(
+            'Upload web bloqué. Sur web, Firebase Storage est bloqué par CORS. Teste sur Android ou configure CORS.',
+          );
+        },
+      );
+
+      print('3. Upload Storage terminé');
     } else if (file != null) {
-      await ref.putFile(file);
+      print('2. Upload avec file');
+
+      await ref.putFile(
+        file,
+        SettableMetadata(contentType: 'application/pdf'),
+      ).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          throw Exception('Upload fichier trop long ou bloqué.');
+        },
+      );
+
+      print('3. Upload Storage terminé');
     } else {
       throw Exception('Aucun fichier valide trouvé');
     }
 
     final downloadUrl = await ref.getDownloadURL();
+    print('4. URL récupérée: $downloadUrl');
 
-    await _firestore.collection('timetables').add({
+    final docRef = await _firestore.collection('timetables').add({
       'type': 'student',
       'filiere': filiere,
       'niveau': niveau,
@@ -48,7 +77,10 @@ class TimetableService {
       'adminMessage': adminMessage,
       'uploadedBy': uploadedBy,
       'uploadedAt': FieldValue.serverTimestamp(),
+      'isActive': true,
     });
+
+    print('5. Document timetable créé: ${docRef.id}');
   }
 
   Future<void> uploadTeacherTimetable({
@@ -64,19 +96,48 @@ class TimetableService {
     final storagePath =
         'timetables/teachers/${teacher.uid}_${safeName}_${timestamp}_$fileName';
 
+    print('1. Début upload enseignant');
+
     final ref = _storage.ref().child(storagePath);
 
     if (fileBytes != null) {
-      await ref.putData(fileBytes);
+      print('2. Upload enseignant avec bytes');
+
+      await ref.putData(
+        fileBytes,
+        SettableMetadata(contentType: 'application/pdf'),
+      ).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          throw Exception(
+            'Upload web bloqué. Sur web, Firebase Storage est bloqué par CORS. Teste sur Android ou configure CORS.',
+          );
+        },
+      );
+
+      print('3. Upload Storage enseignant terminé');
     } else if (file != null) {
-      await ref.putFile(file);
+      print('2. Upload enseignant avec file');
+
+      await ref.putFile(
+        file,
+        SettableMetadata(contentType: 'application/pdf'),
+      ).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          throw Exception('Upload fichier trop long ou bloqué.');
+        },
+      );
+
+      print('3. Upload Storage enseignant terminé');
     } else {
       throw Exception('Aucun fichier valide trouvé');
     }
 
     final downloadUrl = await ref.getDownloadURL();
+    print('4. URL enseignant récupérée: $downloadUrl');
 
-    await _firestore.collection('timetables').add({
+    final docRef = await _firestore.collection('timetables').add({
       'type': 'teacher',
       'filiere': '',
       'niveau': '',
@@ -88,7 +149,10 @@ class TimetableService {
       'adminMessage': adminMessage,
       'uploadedBy': uploadedBy,
       'uploadedAt': FieldValue.serverTimestamp(),
+      'isActive': true,
     });
+
+    print('5. Document timetable enseignant créé: ${docRef.id}');
   }
 
   Future<List<UserModel>> getTeachers() async {

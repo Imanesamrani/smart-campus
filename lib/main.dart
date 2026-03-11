@@ -7,6 +7,7 @@ import 'controllers/map_controller.dart';
 import 'controllers/room_controller.dart';
 import 'controllers/user_controller.dart';
 import 'controllers/timetable_controller.dart';
+import 'controllers/announcement_controller.dart';
 import 'firebase_options.dart';
 import 'models/user_model.dart';
 import 'screens/home_screen.dart';
@@ -35,6 +36,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UserController()),
         ChangeNotifierProvider(create: (_) => CampusMapController()),
         ChangeNotifierProvider(create: (_) => TimetableController()),
+        ChangeNotifierProvider(create: (_) => AnnouncementController()),
+
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
