@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -30,17 +31,58 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _openDirections(Building building) async {
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=${building.latitude},${building.longitude}',
+    final double lat = building.latitude;
+    final double lng = building.longitude;
+
+    final Uri googleMapsAppUri = Uri.parse('google.navigation:q=$lat,$lng');
+    final Uri googleMapsWebUri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
     );
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      // Sur web, on ouvre directement le lien web
+      if (kIsWeb) {
+        await launchUrl(
+          googleMapsWebUri,
+          mode: LaunchMode.platformDefault,
+        );
+        return;
+      }
+
+      // Sur Android/iOS, on essaye d'abord l'app Google Maps
+      if (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        if (await canLaunchUrl(googleMapsAppUri)) {
+          await launchUrl(
+            googleMapsAppUri,
+            mode: LaunchMode.externalApplication,
+          );
+          return;
+        }
+      }
+
+      // Fallback vers Google Maps web
+      if (await canLaunchUrl(googleMapsWebUri)) {
+        await launchUrl(
+          googleMapsWebUri,
+          mode: LaunchMode.externalApplication,
+        );
+        return;
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Impossible d'ouvrir l'itinéraire."),
+          content: Text(
+            "Impossible d'ouvrir l'itinéraire. Vérifie que Google Maps ou un navigateur est installé.",
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erreur d'ouverture de l'itinéraire : $e"),
         ),
       );
     }
