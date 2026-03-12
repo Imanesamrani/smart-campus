@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_smart_campus/controllers/building_controller.dart';
 import 'package:provider/provider.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/favorite_controller.dart';
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CampusMapController()),
         ChangeNotifierProvider(create: (_) => TimetableController()),
         ChangeNotifierProvider(create: (_) => AnnouncementController()),
+        ChangeNotifierProvider(create: (_) => BuildingController()),
 
       ],
       child: MaterialApp(
