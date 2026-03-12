@@ -23,11 +23,24 @@ class MyTimetablesScreen extends StatelessWidget {
       body: StreamBuilder<List<TimetableModel>>(
         stream: service.getTimetablesForUser(user),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final timetables = snapshot.data!;
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Erreur Firestore:\n${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
+          final timetables = snapshot.data ?? [];
+
           if (timetables.isEmpty) {
             return const Center(
               child: Text('Aucun emploi du temps disponible'),
@@ -35,19 +48,15 @@ class MyTimetablesScreen extends StatelessWidget {
           }
 
           final latest = timetables.first;
-          final oldTimetables = timetables.length > 1
-              ? timetables.sublist(1)
-              : <TimetableModel>[];
+          final oldTimetables =
+              timetables.length > 1 ? timetables.sublist(1) : <TimetableModel>[];
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               const Text(
                 'Dernier emploi du temps',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               _buildPinnedCard(context, latest),
@@ -55,10 +64,7 @@ class MyTimetablesScreen extends StatelessWidget {
               if (oldTimetables.isNotEmpty) ...[
                 const Text(
                   'Historique',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 ...oldTimetables.map((t) => _buildHistoryCard(context, t)),
@@ -77,13 +83,6 @@ class MyTimetablesScreen extends StatelessWidget {
           colors: [Color(0xFF5E35B1), Color(0xFF7E57C2)],
         ),
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF5E35B1).withOpacity(0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -106,9 +105,11 @@ class MyTimetablesScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Dernière publication',
-              style: TextStyle(
+            Text(
+              timetable.type == 'student'
+                  ? '${timetable.filiere ?? ''} - ${timetable.niveau ?? ''}'
+                  : (timetable.teacherName ?? 'Emploi du temps enseignant'),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -124,49 +125,63 @@ class MyTimetablesScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Text(
-              timetable.adminMessage.isEmpty
-                  ? 'Aucun message de l’administration'
-                  : timetable.adminMessage,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-              ),
-            ),
+           Container(
+  width: double.infinity,
+  padding: const EdgeInsets.all(12),
+  decoration: BoxDecoration(
+    color: Colors.white.withOpacity(0.16),
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Message de l’administration',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      const SizedBox(height: 6),
+      Text(
+        timetable.adminMessage.isEmpty
+            ? 'Aucun message de l’administration'
+            : timetable.adminMessage,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ],
+  ),
+),
             const SizedBox(height: 12),
             Text(
-              timetable.uploadedAt != null
-                  ? 'Publié le ${DateFormat('dd/MM/yyyy à HH:mm').format(timetable.uploadedAt!)}'
-                  : 'Date non disponible',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
-              ),
+              _formatDate(timetable.uploadedAt),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TimetableViewerScreen(
-                            timetableId: timetable.id,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.open_in_new),
-                    label: const Text('Ouvrir'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF5E35B1),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TimetableViewerScreen(
+                      timetableId: timetable.id,
+                      fileUrl: timetable.fileUrl,
+                      fileName: timetable.fileName,
                     ),
                   ),
-                ),
-              ],
+                );
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Ouvrir'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF5E35B1),
+              ),
             ),
           ],
         ),
@@ -177,36 +192,39 @@ class MyTimetablesScreen extends StatelessWidget {
   Widget _buildHistoryCard(BuildContext context, TimetableModel timetable) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(14),
-        leading: const CircleAvatar(
-          backgroundColor: Color(0xFFEDE7F6),
-          child: Icon(Icons.schedule, color: Color(0xFF5E35B1)),
+        leading: CircleAvatar(
+          backgroundColor: const Color(0xFFEDE7F6),
+          child: Icon(
+            timetable.type == 'student' ? Icons.class_ : Icons.person,
+            color: const Color(0xFF5E35B1),
+          ),
         ),
         title: Text(
           timetable.fileName,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          timetable.uploadedAt != null
-              ? DateFormat('dd/MM/yyyy à HH:mm').format(timetable.uploadedAt!)
-              : 'Date non disponible',
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TimetableViewerScreen(
-                  timetableId: timetable.id,
-                ),
+        subtitle: Text(_formatDate(timetable.uploadedAt)),
+        trailing: const Icon(Icons.arrow_forward_ios),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TimetableViewerScreen(
+                timetableId: timetable.id,
+                fileUrl: timetable.fileUrl,
+                fileName: timetable.fileName,
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
+  }
+
+  String _formatDate(int timestamp) {
+    if (timestamp <= 0) return 'Date non disponible';
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    return DateFormat('dd/MM/yyyy à HH:mm').format(date);
   }
 }

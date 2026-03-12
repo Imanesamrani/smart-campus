@@ -1,156 +1,293 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class TimetableViewerScreen extends StatelessWidget {
+import '../utils/pdf_native_helper.dart'
+    if (dart.library.html) '../utils/pdf_web_helper.dart';
+
+class TimetableViewerScreen extends StatefulWidget {
   final String timetableId;
+  final String fileUrl;
+  final String fileName;
 
   const TimetableViewerScreen({
     super.key,
     required this.timetableId,
+    required this.fileUrl,
+    required this.fileName,
   });
 
-  Future<void> _openPdf(String url) async {
-    final uri = Uri.parse(url);
+  @override
+  State<TimetableViewerScreen> createState() => _TimetableViewerScreenState();
+}
 
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw Exception('Impossible d’ouvrir le fichier PDF');
+class _TimetableViewerScreenState extends State<TimetableViewerScreen> {
+  bool _isLoading = false;
+
+  bool get _isDataUrl =>
+      widget.fileUrl.startsWith('data:application/pdf;base64,');
+
+  bool get _isHttpUrl =>
+      widget.fileUrl.startsWith('http://') ||
+      widget.fileUrl.startsWith('https://');
+
+  Future<File> _saveBase64PdfToTempFile() async {
+    final base64String = widget.fileUrl.replaceFirst(
+      'data:application/pdf;base64,',
+      '',
+    );
+
+    final bytes = base64Decode(base64String);
+    final dir = await getTemporaryDirectory();
+    final safeName = widget.fileName.replaceAll(RegExp(r'[^\w\-.]'), '_');
+    final file = File('${dir.path}/$safeName');
+
+    await file.writeAsBytes(bytes, flush: true);
+    return file;
+  }
+
+  Future<void> _openPdf() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
+    try {
+      if (kIsWeb) {
+        openPdfInWeb(widget.fileUrl, widget.fileName);
+      } else if (_isDataUrl) {
+        final file = await _saveBase64PdfToTempFile();
+        final result = await OpenFilex.open(file.path);
+
+        if (!mounted) return;
+
+        if (result.type != ResultType.done) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Impossible d’ouvrir le PDF: ${result.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else if (_isHttpUrl) {
+        final uri = Uri.parse(widget.fileUrl);
+        final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+        if (!ok && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Impossible d’ouvrir le PDF'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lien du fichier invalide'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur ouverture PDF: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _downloadPdf(String url) async {
-    final uri = Uri.parse(url);
+  Future<void> _downloadPdf() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
 
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw Exception('Impossible de télécharger le fichier PDF');
+    try {
+      if (kIsWeb) {
+        downloadPdfInWeb(widget.fileUrl, widget.fileName);
+      } else if (_isDataUrl) {
+        final file = await _saveBase64PdfToTempFile();
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('PDF enregistré: ${file.path}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else if (_isHttpUrl) {
+        final uri = Uri.parse(widget.fileUrl);
+        final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+        if (!ok && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Impossible de télécharger le PDF'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lien du fichier invalide'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur téléchargement PDF: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
-        title: const Text('Mon emploi du temps'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        title: const Text('Emploi du temps'),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1E293B),
+        elevation: 0,
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
-            .collection('timetables')
-            .doc(timetableId)
-            .get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(
-              child: Text('Emploi du temps introuvable'),
-            );
-          }
-
-          final data = snapshot.data!.data() as Map<String, dynamic>;
-          final fileUrl = data['fileUrl'] ?? '';
-          final fileName = data['fileName'] ?? 'emploi_du_temps.pdf';
-          final adminMessage = data['adminMessage'] ?? '';
-          final uploadedAt = data['uploadedAt'] != null
-              ? (data['uploadedAt'] as Timestamp).toDate()
-              : null;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 18,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.campaign, color: Colors.blue),
-                            SizedBox(width: 8),
-                            Text(
-                              'Message de l’administration',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 78,
+                        height: 78,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F0FE),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(
+                          Icons.picture_as_pdf,
+                          size: 40,
+                          color: Color(0xFF1565C0),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        widget.fileName,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Consultez ou téléchargez votre fichier PDF.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _openPdf,
+                          icon: _isLoading
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.open_in_new),
+                          label: const Text(
+                            'Ouvrir le PDF',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          adminMessage.isEmpty
-                              ? 'Aucun message de l’administration'
-                              : adminMessage,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          uploadedAt != null
-                              ? 'Publié le ${DateFormat('dd/MM/yyyy à HH:mm').format(uploadedAt)}'
-                              : 'Date non disponible',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade700,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1565C0),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Color(0xFFE3F2FD),
-                      child: Icon(Icons.picture_as_pdf, color: Colors.red),
-                    ),
-                    title: Text(
-                      fileName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: const Text(
-                      'Cliquez sur un bouton ci-dessous pour ouvrir ou télécharger',
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: fileUrl.isEmpty ? null : () => _openPdf(fileUrl),
-                    icon: const Icon(Icons.open_in_new),
-                    label: const Text('Ouvrir le PDF'),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed:
-                        fileUrl.isEmpty ? null : () => _downloadPdf(fileUrl),
-                    icon: const Icon(Icons.download),
-                    label: const Text('Télécharger le PDF'),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: OutlinedButton.icon(
+                          onPressed: _isLoading ? null : _downloadPdf,
+                          icon: const Icon(Icons.download),
+                          label: const Text(
+                            'Télécharger',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF1565C0),
+                            side: const BorderSide(
+                              color: Color(0xFF1565C0),
+                              width: 1.4,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

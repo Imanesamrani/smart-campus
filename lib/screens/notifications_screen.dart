@@ -63,14 +63,7 @@ class NotificationsScreen extends StatelessWidget {
 
                   if (!context.mounted) return;
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => TimetableViewerScreen(
-                        timetableId: notif.timetableId,
-                      ),
-                    ),
-                  );
+                  
                 },
               );
             },

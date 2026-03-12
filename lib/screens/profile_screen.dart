@@ -58,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color(0xFFE53935),
           ),
         );
       }
@@ -70,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Veuillez entrer votre nom'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Color(0xFFFF9800),
         ),
       );
       return;
@@ -85,27 +85,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Préparer les données de mise à jour
       Map<String, dynamic> updateData = {
         'displayName': _displayNameController.text.trim(),
       };
 
-      // Ajouter le niveau si c'est un étudiant
       if (user.role == 'étudiant' && _selectedNiveau != null) {
         updateData['niveau'] = _selectedNiveau;
       }
 
-      // Mettre à jour dans Firestore
       await authService.updateUserProfile(user.uid, updateData);
-
-      // Mettre à jour le nom localement (Firebase Auth)
       await authService.updateDisplayName(_displayNameController.text.trim());
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profil mis à jour avec succès !'),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF43A047),
           ),
         );
         Navigator.pop(context);
@@ -115,7 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color(0xFFE53935),
           ),
         );
       }
@@ -129,37 +124,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = context.watch<AuthController>().currentUser;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text('Mon Profil'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        title: const Text(
+          'Mon Profil',
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
       ),
       body: user == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
+              ),
+            )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Photo de profil
                   Stack(
                     children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.blue.shade100,
-                        backgroundImage: _selectedImage != null
-                            ? FileImage(_selectedImage!)
-                            : (user.photoURL != null
-                                ? NetworkImage(user.photoURL!)
-                                : null) as ImageProvider?,
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF1E88E5),
+                              Color(0xFF1565C0),
+                            ],
+                          ),
+                          image: _selectedImage != null
+                              ? DecorationImage(
+                                  image: FileImage(_selectedImage!),
+                                  fit: BoxFit.cover,
+                                )
+                              : (user.photoURL != null
+                                  ? DecorationImage(
+                                      image: NetworkImage(user.photoURL!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null),
+                        ),
                         child: (_selectedImage == null && user.photoURL == null)
-                            ? Text(
-                                user.displayName[0].toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 40,
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.bold,
+                            ? Center(
+                                child: Text(
+                                  user.displayName[0].toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 48,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               )
                             : null,
@@ -172,8 +197,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.blue[800],
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFF1E88E5),
+                                  Color(0xFF1565C0),
+                                ],
+                              ),
                               shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF1E88E5).withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: const Icon(
                               Icons.camera_alt,
@@ -185,163 +224,165 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-                  // Informations utilisateur
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  // Carte d'informations
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Rôle
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              user.role == 'étudiant'
-                                  ? '👨‍🎓 Étudiant'
-                                  : (user.role == 'enseignant'
-                                      ? '👨‍🏫 Enseignant'
-                                      : '👨‍💼 Administrateur'),
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Badge de rôle
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          const SizedBox(height: 16),
-
-                          // Email
-                          Text(
-                            'Email',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.bold,
-                            ),
+                          decoration: BoxDecoration(
+                            color: _getRoleColor(user.role).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            user.email,
-                            style: const TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Filière (si étudiant)
-                          if (user.role == 'étudiant' && user.filiere != null) ...[
-                            Text(
-                              'Filière',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.bold,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _getRoleIcon(user.role),
+                                style: const TextStyle(fontSize: 14),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.green[50],
-                                border: Border.all(
-                                  color: Colors.green[300]!,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                user.filiere!,
+                              const SizedBox(width: 4),
+                              Text(
+                                _getRoleLabel(user.role),
                                 style: TextStyle(
-                                  color: Colors.green[800],
-                                  fontWeight: FontWeight.bold,
+                                  color: _getRoleColor(user.role),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
 
-                          // Créé le
-                          Text(
-                            'Membre depuis',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.bold,
-                            ),
+                        // Email
+                        _buildInfoTile(
+                          icon: Icons.email_outlined,
+                          label: 'Email',
+                          value: user.email,
+                          color: const Color(0xFF1E88E5),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Filière (si étudiant)
+                        if (user.role == 'étudiant' && user.filiere != null) ...[
+                          _buildInfoTile(
+                            icon: Icons.school_outlined,
+                            label: 'Filière',
+                            value: user.filiere!,
+                            color: const Color(0xFF43A047),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${user.createdAt.day}/${user.createdAt.month}/${user.createdAt.year}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
+                          const SizedBox(height: 12),
                         ],
-                      ),
+
+                        // Date d'inscription
+                        _buildInfoTile(
+                          icon: Icons.calendar_today_outlined,
+                          label: 'Membre depuis',
+                          value: '${user.createdAt.day}/${user.createdAt.month}/${user.createdAt.year}',
+                          color: const Color(0xFFFF9800),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  
+                  const SizedBox(height: 20),
 
                   // Formulaire de modification
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'Modifier mon profil',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Modifier mon profil',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
                           ),
-                          const SizedBox(height: 20),
+                        ),
+                        const SizedBox(height: 20),
 
-                          // Nom
-                          TextFormField(
+                        // Champ Nom
+                        Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F7FA),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TextFormField(
                             controller: _displayNameController,
                             decoration: InputDecoration(
-                              labelText: 'Nom complet',
-                              prefixIcon: const Icon(Icons.person_outline),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                              hintText: 'Nom complet',
+                              hintStyle: TextStyle(color: Colors.grey.shade400),
+                              prefixIcon: const Icon(
+                                Icons.person_outline,
+                                color: Color(0xFF1E293B),
                               ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                        ),
+                        const SizedBox(height: 16),
 
-                          // Niveau (si étudiant)
-                          if (user.role == 'étudiant') ...[
-                            DropdownButtonFormField<String>(
+                        // Niveau (si étudiant)
+                        if (user.role == 'étudiant') ...[
+                          Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F7FA),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: DropdownButtonFormField<String>(
                               value: _selectedNiveau,
-                              decoration: InputDecoration(
-                                labelText: 'Niveau scolaire',
-                                prefixIcon: const Icon(Icons.trending_up_outlined),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                              decoration: const InputDecoration(
+                                hintText: 'Niveau scolaire',
+                                prefixIcon: Icon(
+                                  Icons.trending_up_outlined,
+                                  color: Color(0xFF1E293B),
                                 ),
-                                filled: true,
-                                fillColor: Colors.grey[50],
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
                               ),
                               items: _niveaux.map((niveau) {
                                 return DropdownMenuItem(
@@ -354,68 +395,161 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   _selectedNiveau = value;
                                 });
                               },
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
-                          // Boutons
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _updateProfile,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: _isLoading
-                                  ? const CircularProgressIndicator(
-                                      color: Colors.white,
-                                    )
-                                  : const Text(
-                                      'Enregistrer les modifications',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+                              icon: const Icon(Icons.arrow_drop_down),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            height: 50,
-                            child: OutlinedButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () => Navigator.pop(context),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.blue,
-                                side: BorderSide(
-                                  color: Colors.blue,
-                                  width: 2,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text(
-                                'Annuler',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
+                          const SizedBox(height: 16),
                         ],
-                      ),
+
+                        // Boutons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _updateProfile,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF1E88E5),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Enregistrer',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : () => Navigator.pop(context),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1E88E5),
+                                  side: const BorderSide(
+                                    color: Color(0xFF1E88E5),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Annuler',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
+    );
+  }
+
+  String _getRoleLabel(String role) {
+    switch (role) {
+      case 'étudiant':
+        return 'Étudiant';
+      case 'enseignant':
+        return 'Enseignant';
+      case 'admin':
+        return 'Administrateur';
+      default:
+        return 'Utilisateur';
+    }
+  }
+
+  String _getRoleIcon(String role) {
+    switch (role) {
+      case 'étudiant':
+        return '👨‍🎓';
+      case 'enseignant':
+        return '👨‍🏫';
+      case 'admin':
+        return '👨‍💼';
+      default:
+        return '👤';
+    }
+  }
+
+  Color _getRoleColor(String role) {
+    switch (role) {
+      case 'étudiant':
+        return const Color(0xFF1E88E5);
+      case 'enseignant':
+        return const Color(0xFFFF9800);
+      case 'admin':
+        return const Color(0xFFE53935);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: color),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

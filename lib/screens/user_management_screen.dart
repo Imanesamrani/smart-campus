@@ -13,11 +13,12 @@ class UserManagementScreen extends StatefulWidget {
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
   final TextEditingController _searchController = TextEditingController();
+  String? _selectedRole;
+  List<String> _availableRoles = ['étudiant', 'enseignant', 'admin'];
 
   @override
   void initState() {
     super.initState();
-    // Charger les utilisateurs après le build
     Future.microtask(() {
       context.read<UserController>().loadUsers();
     });
@@ -27,6 +28,20 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  List<UserModel> _filterUsers(List<UserModel> users) {
+    return users.where((user) {
+      // Filtre par recherche
+      final matchesSearch = _searchController.text.isEmpty ||
+          user.displayName.toLowerCase().contains(_searchController.text.toLowerCase()) ||
+          user.email.toLowerCase().contains(_searchController.text.toLowerCase());
+      
+      // Filtre par rôle
+      final matchesRole = _selectedRole == null || user.role == _selectedRole;
+      
+      return matchesSearch && matchesRole;
+    }).toList();
   }
 
   void _openAddUserDialog() {
@@ -49,14 +64,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('✅ Utilisateur créé avec succès'),
-                backgroundColor: Colors.green,
+                backgroundColor: Color(0xFF43A047),
               ),
             );
           } else if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('❌ Erreur: ${userController.error}'),
-                backgroundColor: Colors.red,
+                backgroundColor: const Color(0xFFE53935),
               ),
             );
           }
@@ -85,14 +100,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('✅ Utilisateur modifié avec succès'),
-                backgroundColor: Colors.green,
+                backgroundColor: Color(0xFF43A047),
               ),
             );
           } else if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('❌ Erreur: ${userController.error}'),
-                backgroundColor: Colors.red,
+                backgroundColor: const Color(0xFFE53935),
               ),
             );
           }
@@ -105,15 +120,29 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmation'),
+        title: const Text(
+          'Confirmation',
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         content: Text(
-            'Êtes-vous sûr de vouloir supprimer l\'utilisateur "${user.displayName}" ?'),
+          'Êtes-vous sûr de vouloir supprimer l\'utilisateur "${user.displayName}" ?',
+          style: const TextStyle(color: Color(0xFF1E293B)),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF1E88E5),
+            ),
             child: const Text('Annuler'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               final userController = context.read<UserController>();
@@ -123,19 +152,26 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('✅ Utilisateur supprimé avec succès'),
-                    backgroundColor: Colors.green,
+                    backgroundColor: Color(0xFF43A047),
                   ),
                 );
               } else if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('❌ Erreur: ${userController.error}'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: const Color(0xFFE53935),
                   ),
                 );
               }
             },
-            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE53935),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Supprimer'),
           ),
         ],
       ),
@@ -145,11 +181,18 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text('Gestion des Utilisateurs'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        title: const Text(
+          'Gestion des Utilisateurs',
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
       ),
       body: Consumer<UserController>(
         builder: (context, userController, _) {
@@ -159,9 +202,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
+                  ),
                   SizedBox(height: 16),
-                  Text('Chargement des utilisateurs...'),
+                  Text(
+                    'Chargement des utilisateurs...',
+                    style: TextStyle(color: Color(0xFF1E293B)),
+                  ),
                 ],
               ),
             );
@@ -170,24 +218,58 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           // S'il y a une erreur
           if (userController.error != null && userController.users.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Erreur: ${userController.error}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.red[700]),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      userController.loadUsers();
-                    },
-                    child: const Text('Réessayer'),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE53935).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Color(0xFFE53935),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Une erreur est survenue',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      userController.error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        userController.loadUsers();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E88E5),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Réessayer'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -195,64 +277,176 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           // Si la liste est vide
           if (userController.users.isEmpty && !userController.isLoading) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.people_outline,
-                      size: 64, color: Colors.grey.shade300),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Aucun utilisateur trouvé',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      userController.loadUsers();
-                    },
-                    child: const Text('Charger les utilisateurs'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Afficher la liste des utilisateurs
-          return Column(
-            children: [
-              // 📊 Statistiques
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      '${userController.users.length} utilisateur${userController.users.length != 1 ? 's' : ''}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
+                      child: Icon(
+                        Icons.people_outline,
+                        size: 48,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Aucun utilisateur trouvé',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        userController.loadUsers();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E88E5),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Charger les utilisateurs'),
                     ),
                   ],
                 ),
               ),
+            );
+          }
+
+          final filteredUsers = _filterUsers(userController.users);
+
+          // Afficher la liste des utilisateurs
+          return Column(
+            children: [
+              // 🔍 Barre de recherche et filtres
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    // Champ de recherche
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F7FA),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (value) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: 'Rechercher par nom ou email...',
+                          hintStyle: TextStyle(color: Colors.grey.shade400),
+                          prefixIcon: const Icon(Icons.search, color: Color(0xFF1E293B)),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {});
+                                  },
+                                  icon: const Icon(Icons.clear, color: Color(0xFF1E293B)),
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // Filtre par rôle
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          _buildFilterChip(
+                            label: 'Tous',
+                            selected: _selectedRole == null,
+                            onSelected: (_) {
+                              setState(() {
+                                _selectedRole = null;
+                              });
+                            },
+                          ),
+                          ..._availableRoles.map((role) {
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: _buildFilterChip(
+                                label: _getRoleLabel(role),
+                                selected: _selectedRole == role,
+                                onSelected: (_) {
+                                  setState(() {
+                                    _selectedRole = role;
+                                  });
+                                },
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                    
+                    // 📊 Statistiques
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${filteredUsers.length} utilisateur${filteredUsers.length != 1 ? 's' : ''}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        // Statistiques par rôle
+                        if (filteredUsers.isNotEmpty)
+                          Text(
+                            '👨‍🎓 ${filteredUsers.where((u) => u.role == 'étudiant').length}  |  '
+                            '👨‍🏫 ${filteredUsers.where((u) => u.role == 'enseignant').length}  |  '
+                            '⚙️ ${filteredUsers.where((u) => u.role == 'admin').length}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
               // 📋 Liste des utilisateurs
               Expanded(
                 child: ListView.builder(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  itemCount: userController.users.length,
+                  padding: const EdgeInsets.all(20),
+                  itemCount: filteredUsers.length,
                   itemBuilder: (context, index) {
-                    final user = userController.users[index];
-                    return _UserCard(
-                      user: user,
-                      onEdit: () => _openEditUserDialog(user),
-                      onDelete: () => _deleteUser(user),
+                    final user = filteredUsers[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _UserCard(
+                        user: user,
+                        onEdit: () => _openEditUserDialog(user),
+                        onDelete: () => _deleteUser(user),
+                      ),
                     );
                   },
                 ),
@@ -263,10 +457,52 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddUserDialog,
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.person_add),
+        backgroundColor: const Color(0xFF1E88E5),
+        child: const Icon(Icons.person_add, color: Colors.white),
+        elevation: 4,
       ),
     );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool selected,
+    required Function(bool) onSelected,
+  }) {
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: onSelected,
+      backgroundColor: const Color(0xFFF5F7FA),
+      selectedColor: const Color(0xFF1E88E5).withOpacity(0.1),
+      checkmarkColor: const Color(0xFF1E88E5),
+      labelStyle: TextStyle(
+        color: selected ? const Color(0xFF1E88E5) : const Color(0xFF1E293B),
+        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        fontSize: 13,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+        side: BorderSide(
+          color: selected 
+              ? const Color(0xFF1E88E5) 
+              : Colors.grey.withOpacity(0.3),
+        ),
+      ),
+    );
+  }
+
+  String _getRoleLabel(String role) {
+    switch (role) {
+      case 'étudiant':
+        return '👨‍🎓 Étudiant';
+      case 'enseignant':
+        return '👨‍🏫 Enseignant';
+      case 'admin':
+        return '⚙️ Admin';
+      default:
+        return role;
+    }
   }
 }
 
@@ -298,11 +534,11 @@ class _UserCard extends StatelessWidget {
   Color _getRoleColor(String role) {
     switch (role) {
       case 'étudiant':
-        return Colors.blue;
+        return const Color(0xFF1E88E5);
       case 'enseignant':
-        return Colors.orange;
+        return const Color(0xFFFF9800);
       case 'admin':
-        return Colors.red;
+        return const Color(0xFFE53935);
       default:
         return Colors.grey;
     }
@@ -310,19 +546,59 @@ class _UserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // En-tête avec nom et rôle
+            // En-tête avec nom et actions
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Avatar avec initiale
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        _getRoleColor(user.role),
+                        _getRoleColor(user.role).withBlue(
+                          _getRoleColor(user.role).blue - 20,
+                        ),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      user.displayName[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                
+                // Nom et rôle
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,8 +606,9 @@ class _UserCard extends StatelessWidget {
                       Text(
                         user.displayName,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -340,16 +617,16 @@ class _UserCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
-                          vertical: 4,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: _getRoleColor(user.role).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           _getRoleLabel(user.role),
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: _getRoleColor(user.role),
                           ),
@@ -358,43 +635,58 @@ class _UserCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Boutons d'action
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      onEdit();
-                    } else if (value == 'delete') {
-                      onDelete();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 16),
-                          SizedBox(width: 8),
-                          Text('Modifier'),
-                        ],
-                      ),
+                
+                // Menu d'actions
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        onEdit();
+                      } else if (value == 'delete') {
+                        onDelete();
+                      }
+                    },
+                    icon: const Icon(Icons.more_vert, 
+                      color: Color(0xFF1E293B), 
+                      size: 20,
                     ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 16, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Supprimer',
-                              style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 18, color: Color(0xFF1E88E5)),
+                            SizedBox(width: 8),
+                            Text('Modifier'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 18, color: Color(0xFFE53935)),
+                            SizedBox(width: 8),
+                            Text('Supprimer',
+                                style: TextStyle(color: Color(0xFFE53935))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            const Divider(height: 1),
+            
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 12),
 
             // Détails utilisateur
@@ -410,13 +702,13 @@ class _UserCard extends StatelessWidget {
                   _DetailRow(
                     icon: Icons.school,
                     label: 'Filière',
-                    value: user.filiere ?? 'N/A',
+                    value: user.filiere ?? 'Non spécifié',
                   ),
                   const SizedBox(height: 8),
                   _DetailRow(
                     icon: Icons.grade,
                     label: 'Niveau',
-                    value: user.niveau ?? 'N/A',
+                    value: user.niveau ?? 'Non spécifié',
                   ),
                 ],
               ],
@@ -443,17 +735,31 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey.shade600),
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(icon, size: 14, color: Colors.grey.shade600),
+        ),
         const SizedBox(width: 8),
         Text(
           '$label:',
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600, 
+            fontSize: 13,
+            color: Color(0xFF1E293B),
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             value,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+            style: TextStyle(
+              color: Colors.grey.shade600, 
+              fontSize: 13,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
