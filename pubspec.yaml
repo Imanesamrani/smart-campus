@@ -16,6 +16,9 @@ dependencies:
   firebase_storage: ^11.6.0
   file_picker: ^8.0.7
   provider: ^6.1.1
+  http: ^1.1.0
+  mime: ^1.0.4
+  supabase_flutter: ^2.0.0
   email_validator: ^2.1.17
   flutter_secure_storage: ^9.0.0
   image_picker: ^1.0.7

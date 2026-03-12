@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -29,23 +30,47 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  Future<void> _openDirections(Building building) async {
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=${building.latitude},${building.longitude}',
-    );
+ 
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Impossible d'ouvrir l'itinéraire."),
-        ),
-      );
+      Future<void> _openDirections(Building building) async {
+  final double lat = building.latitude;
+  final double lng = building.longitude;
+
+  final Uri appUri = Uri.parse('google.navigation:q=$lat,$lng');
+  final Uri webUri = Uri.parse(
+    'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
+  );
+
+  try {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)) {
+      try {
+        await launchUrl(
+          appUri,
+          mode: LaunchMode.externalApplication,
+        );
+        return;
+      } catch (_) {
+        // on passe au fallback web
+      }
     }
-  }
 
+    await launchUrl(
+      webUri,
+      mode: LaunchMode.externalApplication,
+    );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Impossible d'ouvrir l'itinéraire sur cet appareil ou cet émulateur.",
+        ),
+      ),
+    );
+  }
+}
   void _showBuildingInfo(Building building) {
     final servicesText =
         building.services.isEmpty ? 'Aucun service' : building.services.join(', ');

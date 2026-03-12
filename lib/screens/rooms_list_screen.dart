@@ -69,6 +69,7 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      backgroundColor: Colors.white,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => SingleChildScrollView(
           child: Padding(
@@ -91,29 +92,39 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close, color: Color(0xFF1E293B)),
+                      ),
                     ),
                   ],
                 ),
-                const Divider(),
-                const SizedBox(height: 16),
+                const Divider(height: 32),
 
                 // 🏢 Filtrer par bâtiment
                 const Text(
                   '🏢 Bâtiment',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      FilterChip(
-                        label: const Text('Tous'),
+                      _buildFilterChip(
+                        label: 'Tous',
                         selected: _selectedBuilding == null,
                         onSelected: (selected) {
                           setState(() => _selectedBuilding = null);
@@ -123,8 +134,8 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                       ..._roomController.availableBuildings
                           .map((building) => Padding(
                                 padding: const EdgeInsets.only(right: 8),
-                                child: FilterChip(
-                                  label: Text(building),
+                                child: _buildFilterChip(
+                                  label: building,
                                   selected: _selectedBuilding == building,
                                   onSelected: (selected) {
                                     setState(
@@ -141,7 +152,11 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                 // 👥 Filtrer par capacité
                 const Text(
                   '👥 Capacité d\'accueil',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -150,22 +165,31 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Minimum', style: TextStyle(fontSize: 12)),
+                          const Text(
+                            'Minimum', 
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: 'Ex: 10',
+                              hintStyle: TextStyle(color: Colors.grey.shade400),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
                               ),
+                              filled: true,
+                              fillColor: const Color(0xFFF5F7FA),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
+                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
                             onChanged: (value) {
                               setState(() {
-                                _minCapacity =
-                                    int.tryParse(value);
+                                _minCapacity = int.tryParse(value);
                               });
                             },
                           ),
@@ -177,22 +201,31 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Maximum', style: TextStyle(fontSize: 12)),
+                          const Text(
+                            'Maximum', 
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: 'Ex: 50',
+                              hintStyle: TextStyle(color: Colors.grey.shade400),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
                               ),
+                              filled: true,
+                              fillColor: const Color(0xFFF5F7FA),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
+                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
                             onChanged: (value) {
                               setState(() {
-                                _maxCapacity =
-                                    int.tryParse(value);
+                                _maxCapacity = int.tryParse(value);
                               });
                             },
                           ),
@@ -206,15 +239,19 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                 // 🎛️ Filtrer par équipements
                 const Text(
                   '🎛️ Équipements',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: _roomController.availableEquipment
-                      .map((equipment) => FilterChip(
-                            label: Text(equipment),
+                      .map((equipment) => _buildFilterChip(
+                            label: equipment,
                             selected: _selectedEquipment.contains(equipment),
                             onSelected: (selected) {
                               setState(() {
@@ -228,34 +265,47 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                           ))
                       .toList(),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 // Boutons d'action
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton.icon(
+                      child: OutlinedButton(
                         onPressed: () {
                           this._resetFilters();
                           Navigator.pop(context);
                         },
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Réinitialiser'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(color: Color(0xFF1E88E5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Réinitialiser',
+                          style: TextStyle(color: Color(0xFF1E88E5)),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: ElevatedButton(
                         onPressed: () {
                           _applyFilters();
                           Navigator.pop(context);
                         },
-                        icon: const Icon(Icons.check),
-                        label: const Text('Appliquer'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: const Color(0xFF1E88E5),
                           foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
                         ),
+                        child: const Text('Appliquer'),
                       ),
                     ),
                   ],
@@ -268,58 +318,91 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
     );
   }
 
+  Widget _buildFilterChip({
+    required String label,
+    required bool selected,
+    required Function(bool) onSelected,
+  }) {
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: onSelected,
+      backgroundColor: const Color(0xFFF5F7FA),
+      selectedColor: const Color(0xFF1E88E5).withOpacity(0.1),
+      checkmarkColor: const Color(0xFF1E88E5),
+      labelStyle: TextStyle(
+        color: selected ? const Color(0xFF1E88E5) : const Color(0xFF1E293B),
+        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        fontSize: 13,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+        side: BorderSide(
+          color: selected 
+              ? const Color(0xFF1E88E5) 
+              : Colors.grey.withOpacity(0.3),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text('Salles du Campus'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        title: const Text(
+          'Salles du Campus',
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
       ),
       body: Column(
         children: [
           // 🔍 Barre de recherche améliorée
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(16),
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            color: Colors.white,
             child: Column(
               children: [
                 // Champ de recherche
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: (query) {
-                          _applyFilters();
-                        },
-                        decoration: InputDecoration(
-                          hintText: 'Rechercher par nom, numéro ou bâtiment...',
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    _applyFilters();
-                                  },
-                                  icon: const Icon(Icons.clear),
-                                )
-                              : null,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F7FA),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (query) {
+                            _applyFilters();
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Rechercher par nom, numéro ou bâtiment...',
+                            hintStyle: TextStyle(color: Colors.grey.shade400),
+                            prefixIcon: const Icon(Icons.search, color: Color(0xFF1E293B)),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _applyFilters();
+                                    },
+                                    icon: const Icon(Icons.clear, color: Color(0xFF1E293B)),
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
                         ),
                       ),
                     ),
@@ -327,8 +410,22 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                     // Bouton filtres
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF1E88E5),
+                            Color(0xFF1565C0),
+                          ],
+                        ),
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF1E88E5).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: IconButton(
                         onPressed: _openAdvancedFilterBottomSheet,
@@ -345,78 +442,96 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                     _selectedEquipment.isNotEmpty ||
                     _minCapacity != null ||
                     _maxCapacity != null)
-                  Column(
-                    children: [
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            if (_selectedBuilding != null)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: Chip(
-                                  label: Text('🏢 $_selectedBuilding'),
-                                  onDeleted: () {
-                                    setState(() => _selectedBuilding = null);
-                                    _applyFilters();
-                                  },
-                                  backgroundColor: Colors.blue.shade100,
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        if (_selectedBuilding != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildFilterTag(
+                              label: '🏢 $_selectedBuilding',
+                              onDeleted: () {
+                                setState(() => _selectedBuilding = null);
+                                _applyFilters();
+                              },
+                            ),
+                          ),
+                        if (_minCapacity != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildFilterTag(
+                              label: '👥 Min: $_minCapacity',
+                              onDeleted: () {
+                                setState(() => _minCapacity = null);
+                                _applyFilters();
+                              },
+                            ),
+                          ),
+                        if (_maxCapacity != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildFilterTag(
+                              label: '👥 Max: $_maxCapacity',
+                              onDeleted: () {
+                                setState(() => _maxCapacity = null);
+                                _applyFilters();
+                              },
+                            ),
+                          ),
+                        ..._selectedEquipment.map((eq) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildFilterTag(
+                              label: '🎛️ $eq',
+                              onDeleted: () {
+                                setState(() => _selectedEquipment.remove(eq));
+                                _applyFilters();
+                              },
+                            ),
+                          );
+                        }),
+                        if (_selectedBuilding != null ||
+                            _selectedEquipment.isNotEmpty ||
+                            _minCapacity != null ||
+                            _maxCapacity != null)
+                          GestureDetector(
+                            onTap: _resetFilters,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(30),
+                                border: Border.all(
+                                  color: Colors.red.withOpacity(0.3),
                                 ),
                               ),
-                            if (_minCapacity != null)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: Chip(
-                                  label: Text('👥 Min: $_minCapacity'),
-                                  onDeleted: () {
-                                    setState(() => _minCapacity = null);
-                                    _applyFilters();
-                                  },
-                                  backgroundColor: Colors.blue.shade100,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.refresh,
+                                    size: 14,
+                                    color: Colors.red,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Réinitialiser',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            if (_maxCapacity != null)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: Chip(
-                                  label: Text('👥 Max: $_maxCapacity'),
-                                  onDeleted: () {
-                                    setState(() => _maxCapacity = null);
-                                    _applyFilters();
-                                  },
-                                  backgroundColor: Colors.blue.shade100,
-                                ),
-                              ),
-                            ..._selectedEquipment.map((eq) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: Chip(
-                                  label: Text('🎛️ $eq'),
-                                  onDeleted: () {
-                                    setState(
-                                        () => _selectedEquipment.remove(eq));
-                                    _applyFilters();
-                                  },
-                                  backgroundColor: Colors.blue.shade100,
-                                ),
-                              );
-                            }),
-                            if (_selectedBuilding != null ||
-                                _selectedEquipment.isNotEmpty ||
-                                _minCapacity != null ||
-                                _maxCapacity != null)
-                              GestureDetector(
-                                onTap: _resetFilters,
-                                child: Chip(
-                                  label: const Text('🔄 Réinitialiser'),
-                                  backgroundColor: Colors.red.shade100,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
               ],
             ),
@@ -425,17 +540,18 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
           // 📊 Statistiques des résultats
           Consumer<RoomController>(
             builder: (context, roomController, _) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                color: Colors.white,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       '${roomController.filteredRooms.length} salle${roomController.filteredRooms.length != 1 ? 's' : ''} trouvée${roomController.filteredRooms.length != 1 ? 's' : ''}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
+                        color: Color(0xFF1E293B),
                       ),
                     ),
                     if (roomController.filteredRooms.isNotEmpty)
@@ -458,7 +574,9 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
               builder: (context, roomController, child) {
                 if (roomController.isLoading) {
                   return const Center(
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
+                    ),
                   );
                 }
 
@@ -467,15 +585,22 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off,
-                            size: 64, color: Colors.grey.shade300),
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.search_off,
+                              size: 48, color: Colors.grey.shade400),
+                        ),
                         const SizedBox(height: 16),
                         const Text(
                           'Aucune salle trouvée',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey,
+                            color: Color(0xFF1E293B),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -492,24 +617,65 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.all(20),
                   itemCount: roomController.filteredRooms.length,
                   itemBuilder: (context, index) {
                     final room = roomController.filteredRooms[index];
-                    return _RoomListItem(
-                      room: room,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RoomDetailsScreen(room: room),
-                          ),
-                        );
-                      },
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _RoomListItem(
+                        room: room,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RoomDetailsScreen(room: room),
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterTag({
+    required String label,
+    required VoidCallback onDeleted,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E88E5).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: const Color(0xFF1E88E5).withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF1E88E5),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: onDeleted,
+            child: const Icon(
+              Icons.close,
+              size: 14,
+              color: Color(0xFF1E88E5),
             ),
           ),
         ],
@@ -544,9 +710,11 @@ class _RoomListItemState extends State<_RoomListItem> {
   Future<void> _checkIfFavorite() async {
     final favoriteController = context.read<FavoriteController>();
     final isFav = await favoriteController.isFavorite(widget.room.id);
-    setState(() {
-      _isFavorite = isFav;
-    });
+    if (mounted) {
+      setState(() {
+        _isFavorite = isFav;
+      });
+    }
   }
 
   Future<void> _toggleFavorite() async {
@@ -555,15 +723,19 @@ class _RoomListItemState extends State<_RoomListItem> {
 
     if (authController.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez vous connecter pour ajouter des favoris')),
+        const SnackBar(
+          content: Text('Veuillez vous connecter pour ajouter des favoris'),
+          backgroundColor: Color(0xFF1E88E5),
+        ),
       );
       return;
     }
 
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+
     if (_isFavorite) {
-      await favoriteController.removeFavorite(widget.room.id);
-      setState(() => _isFavorite = false);
-    } else {
       await favoriteController.addFavorite(
         roomId: widget.room.id,
         roomName: widget.room.name,
@@ -571,7 +743,8 @@ class _RoomListItemState extends State<_RoomListItem> {
         capacity: widget.room.capacity,
         equipment: widget.room.equipment,
       );
-      setState(() => _isFavorite = true);
+    } else {
+      await favoriteController.removeFavorite(widget.room.id);
     }
   }
 
@@ -579,10 +752,19 @@ class _RoomListItemState extends State<_RoomListItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -593,12 +775,19 @@ class _RoomListItemState extends State<_RoomListItem> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF1E88E5),
+                      Color(0xFF1565C0),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.meeting_room,
-                  color: Colors.blue.shade600,
+                  color: Colors.white,
                   size: 28,
                 ),
               ),
@@ -609,21 +798,52 @@ class _RoomListItemState extends State<_RoomListItem> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.room.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.room.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // ✅ Statut de disponibilité
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: widget.room.isAvailable
+                                ? const Color(0xFF43A047).withOpacity(0.1)
+                                : const Color(0xFFE53935).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            widget.room.isAvailable ? 'Libre' : 'Occupée',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: widget.room.isAvailable
+                                  ? const Color(0xFF43A047)
+                                  : const Color(0xFFE53935),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         Icon(Icons.location_on,
-                            size: 14, color: Colors.grey.shade600),
+                            size: 14, color: Colors.grey.shade500),
                         const SizedBox(width: 4),
                         Text(
-                          '${widget.room.building} - Étage ${widget.room.floor}',
+                          '${widget.room.building} • Étage ${widget.room.floor}',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -635,10 +855,10 @@ class _RoomListItemState extends State<_RoomListItem> {
                     Row(
                       children: [
                         Icon(Icons.people,
-                            size: 14, color: Colors.grey.shade600),
+                            size: 14, color: Colors.grey.shade500),
                         const SizedBox(width: 4),
                         Text(
-                          'Capacité: ${widget.room.capacity}',
+                          'Capacité: ${widget.room.capacity} personnes',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -651,35 +871,22 @@ class _RoomListItemState extends State<_RoomListItem> {
               ),
 
               // ❤️ Bouton favoris
-              IconButton(
-                onPressed: _toggleFavorite,
-                icon: Icon(
-                  _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: _isFavorite ? Colors.red : Colors.grey,
-                ),
-              ),
-
-              // ✅ Statut de disponibilité
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
                 decoration: BoxDecoration(
-                  color: widget.room.isAvailable
-                      ? Colors.green.shade100
-                      : Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(6),
+                  color: _isFavorite 
+                      ? Colors.red.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  widget.room.isAvailable ? 'Libre' : 'Occupée',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: widget.room.isAvailable
-                        ? Colors.green.shade700
-                        : Colors.red.shade700,
+                child: IconButton(
+                  onPressed: _toggleFavorite,
+                  icon: Icon(
+                    _isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: _isFavorite ? Colors.red : Colors.grey,
+                    size: 20,
                   ),
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(),
                 ),
               ),
             ],

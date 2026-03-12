@@ -5,6 +5,7 @@ import '../models/room_model.dart';
 import '../controllers/favorite_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../screens/map_screen.dart';
+
 class RoomDetailsScreen extends StatefulWidget {
   final RoomModel room;
 
@@ -69,11 +70,18 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text('Détails de la salle'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        title: const Text(
+          'Détails de la salle',
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -81,295 +89,553 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
           children: [
             // 🎨 En-tête avec info principale
             Container(
-              color: Colors.blue.shade50,
-              padding: const EdgeInsets.all(24),
-              child: Column(
+              color: Colors.white,
+              padding: const EdgeInsets.all(20),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.room.name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
                           children: [
+                            Icon(Icons.location_on,
+                                color: const Color(0xFF1E88E5), size: 18),
+                            const SizedBox(width: 6),
                             Text(
-                              widget.room.name,
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                              '${widget.room.building} • Étage ${widget.room.floor}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.location_on,
-                                    color: Colors.blue.shade600),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '${widget.room.building} - Étage ${widget.room.floor}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ),
-                      ),
-                      // ❤️ Bouton favoris (icône uniquement)
-                      IconButton(
-                        onPressed: _toggleFavorite,
-                        icon: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: _isFavorite ? Colors.red : Colors.grey,
-                          size: 28,
-                        ),
-                        tooltip: _isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // 🗺️ Boutons Actions
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Column(
-                children: [
-                  // Bouton Voir sur la carte
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MapScreen(
-                            targetBuildingName: widget.room.building,
-                          ),
-                        ),
-                      );
-                    },
-                      icon: const Icon(Icons.map),
-                      label: const Text('Voir sur la carte'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Bouton Voir en AR
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('🔮 Ouverture de la vue AR...'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.view_in_ar),
-                      label: const Text('Voir en AR'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // 👥 Capacité
-            _InfoSection(
-              icon: Icons.people,
-              title: 'Capacité d\'accueil',
-              content: '${widget.room.capacity} personnes',
-              color: Colors.blue,
-            ),
-            const SizedBox(height: 20),
-
-            // 📝 Description
-            if (widget.room.description.isNotEmpty) ...[
-                    _InfoSection(
-                      icon: Icons.description,
-                      title: 'Description',
-                      content: widget.room.description,
-                      color: Colors.orange,
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // 🎛️ Équipements
-                  if (widget.room.equipment.isNotEmpty) ...[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                  Row(
-                    children: [
-                      Icon(Icons.devices, color: Colors.purple),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Équipements disponibles',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: widget.room.equipment
-                        .map(
-                          (equipment) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.purple.shade100,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _getEquipmentIcon(equipment),
-                                  size: 16,
-                                  color: Colors.purple.shade600,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  equipment,
-                                  style: TextStyle(
-                                    color: Colors.purple.shade700,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                  ],
-
-            // 📍 Localisation
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.blue.shade200,
-                  width: 1,
-                ),
+                  ),
+                  // ❤️ Bouton favoris
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E88E5).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: _toggleFavorite,
+                      icon: Icon(
+                        _isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: _isFavorite ? Colors.red : const Color(0xFF1E88E5),
+                        size: 24,
+                      ),
+                      tooltip: _isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
+                    ),
+                  ),
+                ],
               ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 🗺️ Boutons Actions
                   Row(
                     children: [
-                      Icon(Icons.map, color: Colors.blue.shade600),
+                      Expanded(
+                        child: _buildActionButton(
+                          icon: Icons.map,
+                          label: 'Voir sur la carte',
+                          color: const Color(0xFF43A047),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MapScreen(
+                                  targetBuildingName: widget.room.building,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      const Text(
-                        'Localisation',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: _buildActionButton(
+                          icon: Icons.view_in_ar,
+                          label: 'Voir en AR',
+                          color: const Color(0xFF5E35B1),
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('🔮 Ouverture de la vue AR...'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  _LocationInfo(label: 'Bâtiment', value: widget.room.building),
-                  const SizedBox(height: 8),
-                  _LocationInfo(label: 'Étage', value: 'Étage ${widget.room.floor}'),
-                  const SizedBox(height: 8),
-                  _LocationInfo(
-                    label: 'Salle',
-                    value: widget.room.name,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
 
-            // ⏰ Informations de mise à jour
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Créée le',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      Text(
-                        DateFormat('dd/MM/yyyy')
-                            .format(widget.room.createdAt),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 24),
+
+                  // 👥 Capacité
+                  _buildInfoCard(
+                    icon: Icons.people,
+                    title: 'Capacité d\'accueil',
+                    value: '${widget.room.capacity} personnes',
+                    color: const Color(0xFF1E88E5),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Dernière modification',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      Text(
-                        DateFormat('dd/MM/yyyy HH:mm')
-                            .format(widget.room.updatedAt),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 📝 Description
+                  if (widget.room.description.isNotEmpty)
+                    _buildDescriptionCard(widget.room.description),
+
+                  if (widget.room.description.isNotEmpty)
+                    const SizedBox(height: 16),
+
+                  // 🎛️ Équipements
+                  if (widget.room.equipment.isNotEmpty)
+                    _buildEquipmentSection(widget.room.equipment),
+
+                  if (widget.room.equipment.isNotEmpty)
+                    const SizedBox(height: 16),
+
+                  // 📍 Localisation
+                  _buildLocationCard(),
+
+                  const SizedBox(height: 16),
+
+                  // ⏰ Informations de mise à jour
+                  _buildUpdateInfoCard(),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color,
+              color.withBlue(color.blue - 20),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescriptionCard(String description) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF9800).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.description, 
+                  color: Color(0xFFFF9800), 
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Description',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade700,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEquipmentSection(List<String> equipment) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF5E35B1).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.devices, 
+                  color: Color(0xFF5E35B1), 
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Équipements disponibles',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: equipment.map((item) => Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF5E35B1).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF5E35B1).withOpacity(0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _getEquipmentIcon(item),
+                    size: 14,
+                    color: const Color(0xFF5E35B1),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    item,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF5E35B1),
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E88E5).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.location_on, 
+                  color: Color(0xFF1E88E5), 
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Localisation',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildLocationRow('Bâtiment', widget.room.building),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Divider(height: 1, color: Colors.grey),
+          ),
+          _buildLocationRow('Étage', 'Étage ${widget.room.floor}'),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Divider(height: 1, color: Colors.grey),
+          ),
+          _buildLocationRow('Salle', widget.room.name),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUpdateInfoCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.info_outline, 
+              color: Colors.grey, 
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Créée le',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    Text(
+                      DateFormat('dd/MM/yyyy').format(widget.room.createdAt),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Dernière modification',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    Text(
+                      DateFormat('dd/MM/yyyy HH:mm').format(widget.room.updatedAt),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -393,89 +659,5 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
       default:
         return Icons.devices;
     }
-  }
-}
-
-// 🎨 Section d'information avec icône
-class _InfoSection extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String content;
-  final Color color;
-
-  const _InfoSection({
-    required this.icon,
-    required this.title,
-    required this.content,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: color, size: 28),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                content,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// 📍 Informations de localisation
-class _LocationInfo extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _LocationInfo({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey.shade700,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-      ],
-    );
   }
 }

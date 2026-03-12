@@ -23,11 +23,17 @@ class MyTimetablesScreen extends StatelessWidget {
       body: StreamBuilder<List<TimetableModel>>(
         stream: service.getTimetablesForUser(user),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final timetables = snapshot.data!;
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Erreur: ${snapshot.error}'),
+            );
+          }
+
+          final timetables = snapshot.data ?? [];
           if (timetables.isEmpty) {
             return const Center(
               child: Text('Aucun emploi du temps disponible'),
@@ -106,14 +112,26 @@ class MyTimetablesScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Dernière publication',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            // Afficher la filière/niveau ou le nom du prof selon le type
+            if (timetable.type == 'student') ...[
+              Text(
+                '${timetable.filiere ?? ''} - ${timetable.niveau ?? ''}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
+            ] else ...[
+              Text(
+                timetable.teacherName ?? 'Emploi du temps enseignant',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
             Text(
               timetable.fileName,
@@ -135,9 +153,7 @@ class MyTimetablesScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              timetable.uploadedAt != null
-                  ? 'Publié le ${DateFormat('dd/MM/yyyy à HH:mm').format(timetable.uploadedAt!)}'
-                  : 'Date non disponible',
+              _formatDate(timetable.uploadedAt),
               style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 12,
@@ -154,6 +170,8 @@ class MyTimetablesScreen extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (_) => TimetableViewerScreen(
                             timetableId: timetable.id,
+                            fileUrl: timetable.fileUrl,
+                            fileName: timetable.fileName,
                           ),
                         ),
                       );
@@ -180,18 +198,26 @@ class MyTimetablesScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.all(14),
-        leading: const CircleAvatar(
-          backgroundColor: Color(0xFFEDE7F6),
-          child: Icon(Icons.schedule, color: Color(0xFF5E35B1)),
+        leading: CircleAvatar(
+          backgroundColor: const Color(0xFFEDE7F6),
+          child: Icon(
+            timetable.type == 'student' ? Icons.class_ : Icons.person,
+            color: const Color(0xFF5E35B1),
+          ),
         ),
         title: Text(
           timetable.fileName,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          timetable.uploadedAt != null
-              ? DateFormat('dd/MM/yyyy à HH:mm').format(timetable.uploadedAt!)
-              : 'Date non disponible',
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (timetable.type == 'student')
+              Text('${timetable.filiere} - ${timetable.niveau}')
+            else
+              Text(timetable.teacherName ?? 'Enseignant'),
+            Text(_formatDate(timetable.uploadedAt)),
+          ],
         ),
         trailing: IconButton(
           icon: const Icon(Icons.arrow_forward_ios),
@@ -201,6 +227,8 @@ class MyTimetablesScreen extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => TimetableViewerScreen(
                   timetableId: timetable.id,
+                  fileUrl: timetable.fileUrl,
+                  fileName: timetable.fileName,
                 ),
               ),
             );
@@ -208,5 +236,16 @@ class MyTimetablesScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(int timestamp) {
+    if (timestamp <= 0) return 'Date non disponible';
+    
+    try {
+      final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      return DateFormat('dd/MM/yyyy à HH:mm').format(date);
+    } catch (e) {
+      return 'Date non disponible';
+    }
   }
 }
