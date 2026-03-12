@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/room_controller.dart';
 import '../controllers/user_controller.dart';
+import '../controllers/building_controller.dart'; // ← NOUVEAU
 import '../models/room_model.dart';
 import 'room_form_dialog.dart';
 
@@ -17,6 +18,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     with TickerProviderStateMixin {
   late RoomController _roomController;
   late UserController _userController;
+  late BuildingController _buildingController; // ← NOUVEAU
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String? _selectedBuilding;
@@ -27,6 +29,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     super.initState();
     _roomController = context.read<RoomController>();
     _userController = context.read<UserController>();
+    _buildingController = context.read<BuildingController>(); // ← NOUVEAU
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -41,9 +44,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Future<void> _loadData() async {
-    await _roomController.loadRooms();
-    await _roomController.loadAvailableOptions();
-    await _userController.loadUsers();
+    await Future.wait([
+      _roomController.loadRooms(),
+      _roomController.loadAvailableOptions(),
+      _userController.loadUsers(),
+      _buildingController.loadBuildings(), // ← NOUVEAU : charger les bâtiments
+    ]);
   }
 
   List<RoomModel> _filterRooms(List<RoomModel> rooms) {
@@ -64,21 +70,72 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     }).toList();
   }
 
-  void _openAddRoomDialog() {
+ void _openAddRoomDialog() async {
+  // Check if widget is still mounted before proceeding
+  if (!mounted) return;
+  
+  // 1. Recharger les bâtiments pour être sûr
+  await _buildingController.loadBuildings();
+  
+  // 2. Check again if widget is still mounted after async operation
+  if (!mounted) return;
+  
+  // 3. Vérifier si des bâtiments existent
+  if (_buildingController.buildingNames.isEmpty) {
+    // Afficher un message clair
     showDialog(
       context: context,
-      builder: (context) => RoomFormDialog(
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('⚠️ Bâtiments manquants'),
+        content: const Text(
+          'Aucun bâtiment n\'est disponible dans la base de données.\n\n'
+          'Veuillez d\'abord ajouter des bâtiments avant de créer des salles.'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (Navigator.canPop(dialogContext)) {
+                Navigator.pop(dialogContext);
+              }
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+
+  // 4. Ouvrir le dialog normalement
+  if (mounted) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => RoomFormDialog(
+        buildings: _buildingController.buildingNames,
         onSave: (room) async {
           final success = await _roomController.addRoom(room);
-          if (success && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('✅ Salle ajoutée avec succès'),
-                backgroundColor: Color(0xFF43A047),
-              ),
-            );
-          } else if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+          
+          // Check if dialog context is still valid
+          if (!dialogContext.mounted) return;
+          
+          if (success) {
+            // Close the dialog first
+            if (Navigator.canPop(dialogContext)) {
+              Navigator.pop(dialogContext);
+            }
+            
+            // Then show success message in the main context
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✅ Salle ajoutée avec succès'),
+                  backgroundColor: Color(0xFF43A047),
+                ),
+              );
+            }
+          } else if (dialogContext.mounted) {
+            ScaffoldMessenger.of(dialogContext).showSnackBar(
               SnackBar(
                 content: Text('❌ Erreur: ${_roomController.error}'),
                 backgroundColor: const Color(0xFFE53935),
@@ -89,93 +146,125 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       ),
     );
   }
+}
 
   void _openEditRoomDialog(RoomModel room) {
-    showDialog(
-      context: context,
-      builder: (context) => RoomFormDialog(
-        initialRoom: room,
-        onSave: (updatedRoom) async {
-          final success = await _roomController.updateRoom(room.id, updatedRoom);
-          if (success && mounted) {
+  if (!mounted) return;
+  
+  showDialog(
+    context: context,
+    builder: (dialogContext) => RoomFormDialog(
+      initialRoom: room,
+      buildings: _buildingController.buildingNames,
+      onSave: (updatedRoom) async {
+        final success = await _roomController.updateRoom(room.id, updatedRoom);
+        
+        // Check if dialog context is still valid
+        if (!dialogContext.mounted) return;
+        
+        if (success) {
+          // Close the dialog first
+          if (Navigator.canPop(dialogContext)) {
+            Navigator.pop(dialogContext);
+          }
+          
+          // Then show success message in the main context
+          if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('✅ Salle modifiée avec succès'),
                 backgroundColor: Color(0xFF43A047),
               ),
             );
-          } else if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('❌ Erreur: ${_roomController.error}'),
-                backgroundColor: const Color(0xFFE53935),
-              ),
-            );
           }
-        },
-      ),
-    );
-  }
+        } else if (dialogContext.mounted) {
+          ScaffoldMessenger.of(dialogContext).showSnackBar(
+            SnackBar(
+              content: Text('❌ Erreur: ${_roomController.error}'),
+              backgroundColor: const Color(0xFFE53935),
+            ),
+          );
+        }
+      },
+    ),
+  );
+}
 
   void _deleteRoom(String roomId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(
-          'Confirmation',
-          style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontWeight: FontWeight.w600,
-          ),
+  // Store the scaffold messenger state before showing dialog
+  final messenger = ScaffoldMessenger.of(context);
+  
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text(
+        'Confirmation',
+        style: TextStyle(
+          color: Color(0xFF1E293B),
+          fontWeight: FontWeight.w600,
         ),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cette salle ?',
-          style: TextStyle(color: Color(0xFF1E293B)),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF1E88E5),
-            ),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final success = await _roomController.deleteRoom(roomId);
-              if (success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ Salle supprimée avec succès'),
-                    backgroundColor: Color(0xFF43A047),
-                  ),
-                );
-              } else if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('❌ Erreur: ${_roomController.error}'),
-                    backgroundColor: const Color(0xFFE53935),
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE53935),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Supprimer'),
-          ),
-        ],
       ),
-    );
-  }
+      content: const Text(
+        'Êtes-vous sûr de vouloir supprimer cette salle ?',
+        style: TextStyle(color: Color(0xFF1E293B)),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            if (Navigator.canPop(dialogContext)) {
+              Navigator.pop(dialogContext);
+            }
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: const Color(0xFF1E88E5),
+          ),
+          child: const Text('Annuler'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            // Close dialog first
+            if (Navigator.canPop(dialogContext)) {
+              Navigator.pop(dialogContext);
+            }
+            
+            // Perform deletion
+            final success = await _roomController.deleteRoom(roomId);
+            
+            // Check if widget is still mounted before showing SnackBar
+            if (!mounted) return;
+            
+            if (success) {
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text('✅ Salle supprimée avec succès'),
+                  backgroundColor: Color(0xFF43A047),
+                ),
+              );
+            } else {
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text('❌ Erreur: ${_roomController.error}'),
+                  backgroundColor: const Color(0xFFE53935),
+                ),
+              );
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFE53935),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: const Text('Supprimer'),
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +285,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ),
           backgroundColor: Colors.white,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
+          iconTheme: const IconThemeData(color: Colors.black),
         ),
         body: Center(
           child: Padding(
@@ -281,8 +370,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Widget _buildRoomsTab() {
-    return Consumer<RoomController>(
-      builder: (context, roomController, child) {
+    return Consumer2<RoomController, BuildingController>(
+      builder: (context, roomController, buildingController, child) {
         if (roomController.isLoading && roomController.rooms.isEmpty) {
           return const Center(
             child: CircularProgressIndicator(
@@ -383,38 +472,41 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ),
                   ),
                   
-                  // Filtres rapides
+                  // Filtres rapides - Utilise les bâtiments de BuildingController
                   const SizedBox(height: 16),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildFilterChip(
-                          label: 'Tous',
-                          selected: _selectedBuilding == null,
-                          onSelected: (_) {
-                            setState(() {
-                              _selectedBuilding = null;
-                            });
-                          },
-                        ),
-                        ...roomController.availableBuildings.map((building) {
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: _buildFilterChip(
-                              label: building,
-                              selected: _selectedBuilding == building,
-                              onSelected: (_) {
-                                setState(() {
-                                  _selectedBuilding = building;
-                                });
-                              },
-                            ),
-                          );
-                        }),
-                      ],
+                  if (buildingController.isLoading)
+                    const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                  else
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildFilterChip(
+                            label: 'Tous',
+                            selected: _selectedBuilding == null,
+                            onSelected: (_) {
+                              setState(() {
+                                _selectedBuilding = null;
+                              });
+                            },
+                          ),
+                          ...buildingController.buildingNames.map((building) {
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: _buildFilterChip(
+                                label: building,
+                                selected: _selectedBuilding == building,
+                                onSelected: (_) {
+                                  setState(() {
+                                    _selectedBuilding = building;
+                                  });
+                                },
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
                     ),
-                  ),
                   
                   // 📊 Statistiques
                   const SizedBox(height: 12),
@@ -467,8 +559,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Widget _buildStatsTab() {
-    return Consumer2<RoomController, UserController>(
-      builder: (context, roomController, userController, child) {
+    return Consumer3<RoomController, UserController, BuildingController>(
+      builder: (context, roomController, userController, buildingController, child) {
         final totalRooms = roomController.rooms.length;
         final totalCapacity = roomController.rooms.fold<int>(0, (sum, room) => sum + room.capacity);
         final avgCapacity = totalRooms > 0 ? (totalCapacity / totalRooms).round() : 0;
@@ -522,7 +614,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   _buildStatCard(
                     icon: Icons.location_city,
                     label: 'Bâtiments',
-                    value: roomController.availableBuildings.length.toString(),
+                    value: buildingController.buildings.length.toString(), // ← Utilise BuildingController
                     color: const Color(0xFF5E35B1),
                   ),
                 ],
@@ -577,7 +669,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
               const SizedBox(height: 24),
 
-              // Graphique simple (simulé)
+              // Graphique - Répartition par bâtiment (depuis BuildingController)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -604,7 +696,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...roomController.availableBuildings.map((building) {
+                    ...buildingController.buildingNames.map((building) {
                       final count = roomController.rooms
                           .where((room) => room.building == building)
                           .length;
@@ -635,7 +727,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                             ),
                             const SizedBox(height: 4),
                             LinearProgressIndicator(
-                              value: count / totalRooms,
+                              value: totalRooms > 0 ? count / totalRooms : 0,
                               backgroundColor: Colors.grey.shade200,
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                 Color(0xFF1E88E5),

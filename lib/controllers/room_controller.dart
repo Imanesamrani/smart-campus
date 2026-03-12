@@ -41,6 +41,8 @@ class RoomController extends ChangeNotifier {
     }
   }
 
+  
+
   // 📌 AJOUTER une nouvelle salle (Admin)
   Future<bool> addRoom(RoomModel room) async {
     _isLoading = true;
