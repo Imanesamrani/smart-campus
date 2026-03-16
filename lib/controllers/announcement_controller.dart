@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/announcement.dart';
 import '../services/announcement_service.dart';
+import '../services/AR_Notification/notification_service.dart';
 
 class AnnouncementController extends ChangeNotifier {
   final AnnouncementService _service = AnnouncementService();
+  final NotificationService _notificationService = NotificationService();
 
   List<Announcement> announcements = [];
   bool isLoading = false;
@@ -55,6 +57,34 @@ class AnnouncementController extends ChangeNotifier {
   Future<bool> addAnnouncement(Announcement announcement) async {
     try {
       await _service.addAnnouncement(announcement);
+
+      // Création automatique de notifications pour les cibles
+      for (var role in announcement.targetRoles) {
+        String targetType = '';
+        if (role == 'étudiant') {
+          targetType = 'student';
+        } else if (role == 'enseignant') {
+          targetType = 'teacher';
+        }
+
+        if (targetType.isNotEmpty) {
+          // On crée une notification pour chaque filière/niveau ciblés
+          // Si c'est "tous", on passe "tous" au service
+          for (var filiere in announcement.targetFilieres) {
+            for (var niveau in announcement.targetNiveaux) {
+              await _notificationService.createNotification(
+                targetType: targetType,
+                filiere: filiere,
+                niveau: niveau,
+                title: "Nouvelle annonce : ${announcement.title}",
+                message: announcement.message,
+                adminMessage: "Publié par ${announcement.author}",
+              );
+            }
+          }
+        }
+      }
+
       await loadAllAnnouncementsAdmin();
       return true;
     } catch (e, stackTrace) {

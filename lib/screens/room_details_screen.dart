@@ -5,6 +5,7 @@ import '../models/room_model.dart';
 import '../controllers/favorite_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../screens/map_screen.dart';
+import 'AR_Notification/room_ar_viewer_screen.dart';
 
 class RoomDetailsScreen extends StatefulWidget {
   final RoomModel room;
@@ -109,8 +110,8 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Icon(Icons.location_on,
-                                color: const Color(0xFF1E88E5), size: 18),
+                            const Icon(Icons.location_on,
+                                color: Color(0xFF1E88E5), size: 18),
                             const SizedBox(width: 6),
                             Text(
                               '${widget.room.building} • Étage ${widget.room.floor}',
@@ -176,10 +177,12 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                           label: 'Voir en AR',
                           color: const Color(0xFF5E35B1),
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('🔮 Ouverture de la vue AR...'),
-                                duration: Duration(seconds: 2),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RoomARViewerScreen(
+                                  room: widget.room,
+                                ),
                               ),
                             );
                           },
@@ -261,14 +264,18 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

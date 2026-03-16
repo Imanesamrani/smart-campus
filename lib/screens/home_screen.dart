@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/favorite_controller.dart';
 import '../models/user_model.dart';
-import '../services/notification_service.dart';
+import '../services/AR_Notification/notification_service.dart';
 import 'profile_screen.dart';
 import 'rooms_list_screen.dart';
 import 'favorites_screen.dart';
@@ -11,10 +11,12 @@ import 'user_management_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'jobs_screen.dart';
 import 'admin_timetable_home_screen.dart';
-import 'notifications_screen.dart';
 import 'admin_announcements_screen.dart';
 import 'announcement_screen.dart';
 import 'my_timetables_screen.dart';
+import 'AR_Notification/ar_scan_screen.dart';
+import 'AR_Notification/notifications_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -65,10 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  bool _showTimetableNotifications(UserModel user) {
-    return user.role == 'étudiant' || user.role == 'enseignant';
-  }
-
   @override
   Widget build(BuildContext context) {
     final authController = context.watch<AuthController>();
@@ -94,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
           BottomNavigationBarItem(icon: Icon(Icons.meeting_room), label: 'Salles'),
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'Scan'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favoris'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],
@@ -108,11 +107,13 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return const RoomsListScreen();
       case 2:
+        return const ArScanScreen();
+      case 3:
         final favoriteController = context.read<FavoriteController>();
         favoriteController.setUserId(user.uid);
         favoriteController.loadFavorites();
         return const FavoritesScreen();
-      case 3:
+      case 4:
         return const ProfileScreen();
       default:
         return _buildDashboard(context, user);
@@ -125,20 +126,17 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 40, 10, 20), // Ajusté pour l'espace
             child: Row(
               children: [
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 50,
+                  height: 50,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF1E88E5),
-                        Color(0xFF1565C0),
-                      ],
+                      colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
                     ),
                     shape: BoxShape.circle,
                     image: user.photoURL != null
@@ -153,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             user.displayName[0].toUpperCase(),
                             style: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 20,
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
@@ -161,111 +159,65 @@ class _HomeScreenState extends State<HomeScreen> {
                         )
                       : null,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Bonjour, ${user.displayName}!',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _getRoleIcon(user.role),
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
+                      Text(
+                        'Bonjour, ${user.displayName}!',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
                         ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E88E5).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           _getRoleLabel(user.role),
                           style: const TextStyle(
                             color: Color(0xFF1E88E5),
                             fontWeight: FontWeight.w500,
-                            fontSize: 12,
+                            fontSize: 10,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                if (_showTimetableNotifications(user))
-                  StreamBuilder<int>(
-                    stream: NotificationService().unreadCount(user),
-                    builder: (context, snapshot) {
-                      final unreadCount = snapshot.data ?? 0;
-
-                      return Stack(
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.notifications_outlined,
-                              color: Color(0xFF1E293B),
-                            ),
-                            tooltip: 'Notifications',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const NotificationsScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                          if (unreadCount > 0)
-                            Positioned(
-                              right: 6,
-                              top: 6,
-                              child: Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 18,
-                                  minHeight: 18,
-                                ),
-                                child: Text(
-                                  unreadCount > 9 ? '9+' : unreadCount.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
+                // 🔔 COMPTEUR DE NOTIFICATIONS (BADGE)
+                StreamBuilder<int>(
+                  stream: NotificationService().unreadCount(user),
+                  builder: (context, snapshot) {
+                    final count = snapshot.data ?? 0;
+                    return IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                        );
+                      },
+                      icon: Badge(
+                        label: Text('$count'),
+                        backgroundColor: count > 0 ? Colors.red : Colors.grey.shade400,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: const Icon(Icons.notifications_outlined, color: Color(0xFF1E293B)),
+                      ),
+                    );
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Color(0xFF1E293B)),
                   onPressed: () async {
                     await context.read<AuthController>().logout();
                   },
-                  tooltip: 'Déconnexion',
                 ),
               ],
             ),
@@ -275,10 +227,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (_showTimetableNotifications(user))
-                  _buildTimetableNotificationCard(user),
-                if (_showTimetableNotifications(user))
-                  const SizedBox(height: 20),
                 const Text(
                   'Fonctionnalités principales',
                   style: TextStyle(
@@ -299,99 +247,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTimetableNotificationCard(UserModel user) {
-    return StreamBuilder<int>(
-      stream: NotificationService().unreadCount(user),
-      builder: (context, snapshot) {
-        final unreadCount = snapshot.data ?? 0;
-
-        if (unreadCount == 0) {
-          return const SizedBox.shrink();
-        }
-
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF5E35B1),
-                Color(0xFF7E57C2),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF5E35B1).withOpacity(0.25),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.schedule,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Nouvelle mise à jour disponible',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      unreadCount == 1
-                          ? 'Vous avez 1 notification liée à votre emploi du temps.'
-                          : 'Vous avez $unreadCount notifications liées à votre emploi du temps.',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationsScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF5E35B1),
-                  minimumSize: const Size(90, 42),
-                ),
-                child: const Text('Voir'),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -472,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
           isEnabled: false,
         ),
         _FeatureItem(
-          icon: Icons.notifications,
+          icon: Icons.campaign,
           title: 'Gérer les Annonces',
           subtitle: 'Publier, modifier et supprimer les annonces',
           color: const Color(0xFFFFB300),
@@ -744,7 +599,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Consultez régulièrement vos annonces et notifications académiques.',
+                  'Consultez régulièrement vos annonces académiques.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,

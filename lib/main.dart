@@ -13,6 +13,7 @@ import 'firebase_options.dart';
 import 'models/user_model.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'services/AR_Notification/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,9 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialiser les notifications
+  await NotificationService().init();
 
   runApp(const MyApp());
 }

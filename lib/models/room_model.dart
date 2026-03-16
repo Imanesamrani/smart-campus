@@ -11,6 +11,7 @@ class RoomModel {
   final bool isAvailable; // Disponibilité de la salle
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? model3DUrl; // URL du modèle 3D
 
   RoomModel({
     required this.id,
@@ -23,6 +24,7 @@ class RoomModel {
     this.isAvailable = true,
     required this.createdAt,
     required this.updatedAt,
+    this.model3DUrl,
   });
 
   // Convertir un document Firestore en RoomModel
@@ -38,6 +40,7 @@ class RoomModel {
       isAvailable: data['isAvailable'] ?? true,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      model3DUrl: data['model3DUrl'],
     );
   }
 
@@ -53,6 +56,7 @@ class RoomModel {
       'isAvailable': isAvailable,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
+      'model3DUrl': model3DUrl,
     };
   }
 
@@ -65,6 +69,7 @@ class RoomModel {
     List<String>? equipment,
     String? description,
     bool? isAvailable,
+    String? model3DUrl,
   }) {
     return RoomModel(
       id: id,
@@ -77,6 +82,7 @@ class RoomModel {
       isAvailable: isAvailable ?? this.isAvailable,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
+      model3DUrl: model3DUrl ?? this.model3DUrl,
     );
   }
 
