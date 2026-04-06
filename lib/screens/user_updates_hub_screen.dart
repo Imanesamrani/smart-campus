@@ -24,7 +24,6 @@ class UserUpdatesHubScreen extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const NotificationsScreen()),
             ),
           ),
-          // Autres options du hub...
         ],
       ),
     );
@@ -39,7 +38,7 @@ class UserUpdatesHubScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Card(
-      margin: const EdgeInsets.bottom(16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color.withOpacity(0.1),

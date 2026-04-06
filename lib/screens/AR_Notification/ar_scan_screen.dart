@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/room_controller.dart';
 import '../../models/room_model.dart';
 import '../room_details_screen.dart';
+import 'ar_navigation_screen.dart';
 
 class ArScanScreen extends StatefulWidget {
   const ArScanScreen({super.key});
@@ -255,7 +256,27 @@ class _ArScanScreenState extends State<ArScanScreen> {
               const Center(child: Text('↑ Glissez pour voir plus d\'infos ↑', style: TextStyle(fontSize: 11, color: Colors.blue, fontWeight: FontWeight.w500))),
               const Divider(height: 30),
               
-              // Infos supplémentaires révélées par le Swipe Up
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.navigation),
+                      label: const Text('NAVIGUER ICI (RA)'),
+                      onPressed: () => Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (_) => ArNavigationScreen(destination: room))
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
               _buildExpandedInfo(Icons.people_outline, 'Capacité', '${room.capacity} personnes'),
               const SizedBox(height: 15),
               _buildExpandedInfo(
