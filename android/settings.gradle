@@ -27,3 +27,8 @@ plugins {
 }
 
 include ":app"
+
+def unityLibraryDir = file("unityLibrary")
+if (unityLibraryDir.exists()) {
+    include ":unityLibrary"
+}

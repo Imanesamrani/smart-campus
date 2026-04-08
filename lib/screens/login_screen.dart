@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../controllers/auth_controller.dart';
-import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,31 +25,87 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      final authController = context.read<AuthController>();
-      
-      bool success = await authController.login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+  Future<void> _showErrorAlert(String message) async {
+    if (!mounted) return;
 
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Connexion réussie !'),
-            backgroundColor: Colors.green,
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Connexion impossible'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
           ),
-        );
-      } else if (mounted && authController.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authController.errorMessage!),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    FocusScope.of(context).unfocus();
+
+    final authController = context.read<AuthController>();
+    final success = await authController.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Connexion réussie !'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
     }
+
+    await _showErrorAlert(
+      authController.errorMessage ?? 'Email ou mot de passe incorrect',
+    );
+  }
+
+  Future<void> _showForgotPasswordAlert() async {
+    final email = _emailController.text.trim();
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Mot de passe oublié'),
+        content: Text(
+          email.isNotEmpty
+              ? 'Nous allons ouvrir la réinitialisation avec l\'email :\n$email'
+              : 'Nous allons ouvrir la réinitialisation du mot de passe. Vous pourrez saisir votre email dans l\'écran suivant.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ForgotPasswordScreen(
+                    initialEmail: email.isNotEmpty ? email : null,
+                  ),
+                ),
+              );
+            },
+            child: const Text('Continuer'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -73,7 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo avec animation
                   Container(
                     width: 90,
                     height: 90,
@@ -102,8 +158,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-
-                  // Titre
                   Text(
                     'Smart Campus',
                     style: Theme.of(context).textTheme.displayMedium?.copyWith(
@@ -113,8 +167,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  
-                  // Subtitle
                   Text(
                     'Gérez votre vie scolaire en un clic',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -124,8 +176,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
-
-                  // Card avec formulaire
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -134,7 +184,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         BoxShadow(
                           color: const Color(0xFF0066CC).withOpacity(0.12),
                           blurRadius: 24,
-                          spreadRadius: 0,
                         ),
                       ],
                     ),
@@ -143,14 +192,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          // Email Input
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: InputDecoration(
-                              labelText: 'Adresse Email',
+                            decoration: const InputDecoration(
+                              labelText: 'Adresse email',
                               hintText: 'votre@email.com',
-                              prefixIcon: const Icon(Icons.mail_outline_rounded),
+                              prefixIcon: Icon(Icons.mail_outline_rounded),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -163,14 +211,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 20),
-
-                          // Password Input
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
                             decoration: InputDecoration(
                               labelText: 'Mot de passe',
-                              hintText: '••••••••',
+                              hintText: '********',
                               prefixIcon: const Icon(Icons.lock_outline_rounded),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -196,22 +242,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-
-                          // Forgot Password Link
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const ForgotPasswordScreen(),
-                                  ),
-                                );
-                              },
+                              onPressed: _showForgotPasswordAlert,
                               child: Text(
                                 'Mot de passe oublié ?',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
                                       color: const Color(0xFF0066CC),
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -219,8 +259,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 32),
-
-                          // Login Button
                           Consumer<AuthController>(
                             builder: (context, authController, child) {
                               return ElevatedButton(
@@ -245,8 +283,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Register Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -267,7 +303,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         child: Text(
                           'S\'inscrire',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
                                 color: const Color(0xFF0066CC),
                                 fontWeight: FontWeight.w700,
                               ),

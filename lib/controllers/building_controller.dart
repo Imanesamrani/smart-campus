@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
 import '../models/building.dart';
 
 class BuildingController extends ChangeNotifier {
@@ -24,7 +25,7 @@ class BuildingController extends ChangeNotifier {
       _buildings = snapshot.docs
           .map((doc) => Building.fromMap(doc.data(), doc.id))
           .toList();
-      
+
       // Trier par nom
       _buildings.sort((a, b) => a.name.compareTo(b.name));
     } catch (e) {
@@ -45,7 +46,7 @@ class BuildingController extends ChangeNotifier {
   Building? getBuildingByName(String name) {
     try {
       return _buildings.firstWhere((b) => b.name == name);
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }

@@ -179,6 +179,8 @@ class AuthService {
           return 'Aucun utilisateur trouvé avec cet email';
         case 'wrong-password':
           return 'Mot de passe incorrect';
+        case 'invalid-credential':
+          return 'Email ou mot de passe incorrect';
         case 'invalid-email':
           return 'Email invalide';
         case 'user-disabled':

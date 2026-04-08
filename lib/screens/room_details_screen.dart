@@ -5,7 +5,6 @@ import '../models/room_model.dart';
 import '../controllers/favorite_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../screens/map_screen.dart';
-import 'AR_Notification/room_ar_viewer_screen.dart';
 
 class RoomDetailsScreen extends StatefulWidget {
   final RoomModel room;
@@ -164,24 +163,6 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                               MaterialPageRoute(
                                 builder: (context) => MapScreen(
                                   targetBuildingName: widget.room.building,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildActionButton(
-                          icon: Icons.view_in_ar,
-                          label: 'Voir en AR',
-                          color: const Color(0xFF5E35B1),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RoomARViewerScreen(
-                                  room: widget.room,
                                 ),
                               ),
                             );
