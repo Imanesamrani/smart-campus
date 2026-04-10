@@ -2,16 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RoomModel {
   final String id;
-  final String name; // Nom de la salle (ex: "Amphi 1", "Salle 201")
-  final String building; // Bâtiment (ex: "Bâtiment A", "Bloc 2")
-  final int floor; // Étage
-  final int capacity; // Capacité d'accueil
-  final List<String> equipment; // Équipements disponibles
-  final String description; // Description additionnelle
-  final bool isAvailable; // Disponibilité de la salle
+  final String name;
+  final String building;
+  final int floor;
+  final int capacity;
+  final List<String> equipment;
+  final String description;
+  final bool isAvailable;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String? model3DUrl; // URL du modèle 3D
+  final String? model3DUrl;
 
   RoomModel({
     required this.id,
@@ -27,7 +27,6 @@ class RoomModel {
     this.model3DUrl,
   });
 
-  // Convertir un document Firestore en RoomModel
   factory RoomModel.fromFirestore(Map<String, dynamic> data, String roomId) {
     return RoomModel(
       id: roomId,
@@ -44,7 +43,6 @@ class RoomModel {
     );
   }
 
-  // Convertir RoomModel en Map pour Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
@@ -60,8 +58,8 @@ class RoomModel {
     };
   }
 
-  // Créer une copie avec des modifications
   RoomModel copyWith({
+    String? id,
     String? name,
     String? building,
     int? floor,
@@ -72,7 +70,7 @@ class RoomModel {
     String? model3DUrl,
   }) {
     return RoomModel(
-      id: id,
+      id: id ?? this.id,
       name: name ?? this.name,
       building: building ?? this.building,
       floor: floor ?? this.floor,

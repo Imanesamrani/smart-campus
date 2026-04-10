@@ -129,7 +129,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0066CC).withOpacity(0.25),
+                        color: const Color(0xFF0066CC).withValues(alpha: 0.25),
                         blurRadius: 20,
                         spreadRadius: 4,
                       ),
@@ -172,7 +172,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0066CC).withOpacity(0.12),
+                        color: const Color(0xFF0066CC).withValues(alpha: 0.12),
                         blurRadius: 24,
                         spreadRadius: 0,
                       ),

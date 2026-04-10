@@ -244,7 +244,7 @@ class _AnnouncementFormDialogState extends State<AnnouncementFormDialog> {
                 ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: _inputDecoration('Type', Icons.category),
                   items: _types
                       .map(
@@ -325,7 +325,7 @@ class _AnnouncementFormDialogState extends State<AnnouncementFormDialog> {
                     'Les annonces importantes restent en haut de la liste',
                   ),
                   value: _isPinned,
-                  activeColor: const Color(0xFFFB8C00),
+                  activeThumbColor: const Color(0xFFFB8C00),
                   onChanged: (value) {
                     setState(() => _isPinned = value);
                   },
@@ -378,7 +378,7 @@ class _AnnouncementFormDialogState extends State<AnnouncementFormDialog> {
       selected: isSelected,
       label: Text(label),
       onSelected: (selected) => _toggleRole(value, selected),
-      selectedColor: const Color(0xFF1E88E5).withOpacity(0.18),
+      selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.18),
       checkmarkColor: const Color(0xFF1E88E5),
       labelStyle: TextStyle(
         color: isSelected ? const Color(0xFF1E88E5) : const Color(0xFF334155),
@@ -397,7 +397,7 @@ class _AnnouncementFormDialogState extends State<AnnouncementFormDialog> {
       selected: isSelected,
       label: Text(label),
       onSelected: (selected) => _toggleFiliere(value, selected),
-      selectedColor: const Color(0xFF1E88E5).withOpacity(0.18),
+      selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.18),
       checkmarkColor: const Color(0xFF1E88E5),
       labelStyle: TextStyle(
         color: isSelected ? const Color(0xFF1E88E5) : const Color(0xFF334155),
@@ -416,7 +416,7 @@ class _AnnouncementFormDialogState extends State<AnnouncementFormDialog> {
       selected: isSelected,
       label: Text(label),
       onSelected: (selected) => _toggleNiveau(value, selected),
-      selectedColor: const Color(0xFF8E24AA).withOpacity(0.18),
+      selectedColor: const Color(0xFF8E24AA).withValues(alpha: 0.18),
       checkmarkColor: const Color(0xFF8E24AA),
       labelStyle: TextStyle(
         color: isSelected ? const Color(0xFF8E24AA) : const Color(0xFF334155),

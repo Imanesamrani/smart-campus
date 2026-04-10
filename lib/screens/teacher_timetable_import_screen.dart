@@ -18,7 +18,8 @@ class _TeacherTimetableImportScreenState
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<TimetableController>().loadTeachers();
     });
   }
@@ -49,7 +50,7 @@ class _TeacherTimetableImportScreenState
                   child: Column(
                     children: [
                       DropdownButtonFormField<UserModel>(
-                        value: controller.selectedTeacher,
+                        initialValue: controller.selectedTeacher,
                         decoration: const InputDecoration(
                           labelText: 'Enseignant',
                           border: OutlineInputBorder(),
@@ -110,9 +111,7 @@ class _TeacherTimetableImportScreenState
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        result == null
-                                            ? '✅ Emploi du temps importé'
-                                            : result,
+                                        result ?? '✅ Emploi du temps importé',
                                       ),
                                       backgroundColor: result == null
                                           ? Colors.green

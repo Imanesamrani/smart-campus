@@ -140,7 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0066CC).withOpacity(0.25),
+                          color: const Color(0xFF0066CC).withValues(alpha: 0.25),
                           blurRadius: 20,
                           spreadRadius: 4,
                         ),
@@ -183,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0066CC).withOpacity(0.12),
+                          color: const Color(0xFF0066CC).withValues(alpha: 0.12),
                           blurRadius: 24,
                           spreadRadius: 0,
                         ),
@@ -279,7 +279,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           // Filière (seulement pour les étudiants)
                           if (_selectedRole == 'étudiant') ...[
                             DropdownButtonFormField<String>(
-                              value: _selectedFiliere,
+                              initialValue: _selectedFiliere,
                               decoration: InputDecoration(
                                 labelText: 'Filière',
                                 prefixIcon: const Icon(Icons.school_rounded),
@@ -306,7 +306,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             
                             // Niveau (seulement pour les étudiants)
                             DropdownButtonFormField<String>(
-                              value: _selectedNiveau,
+                              initialValue: _selectedNiveau,
                               decoration: InputDecoration(
                                 labelText: 'Niveau',
                                 prefixIcon: const Icon(Icons.trending_up_rounded),

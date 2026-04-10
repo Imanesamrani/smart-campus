@@ -7,32 +7,33 @@ import '../../models/user_model.dart';
 class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
   Future<void> init() async {
-    NotificationSettings settings = await _fcm.requestPermission(
+    final settings = await _fcm.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      const AndroidInitializationSettings initializationSettingsAndroid =
+      const initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');
-      
-      const InitializationSettings initializationSettings = InitializationSettings(
+
+      const initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
       );
 
       await _localNotifications.initialize(initializationSettings);
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        RemoteNotification? notification = message.notification;
-        AndroidNotification? android = message.notification?.android;
+        final notification = message.notification;
+        final android = message.notification?.android;
 
         if (notification != null && android != null) {
           _localNotifications.show(
@@ -74,56 +75,65 @@ class NotificationService {
       'adminMessage': adminMessage,
       'timetableId': timetableId,
       'createdAt': FieldValue.serverTimestamp(),
-      'isRead': false,
+      'readBy': <String>[],
     });
   }
 
   Stream<List<AppNotificationModel>> getNotificationsForUser(UserModel user) {
-    // On simplifie la requête Firestore pour éviter les problèmes d'index complexes
-    // On filtre davantage côté client pour supporter les notifications "tous"
-    return _firestore.collection('notifications')
-        .snapshots()
-        .map((snapshot) {
-          final allNotifs = snapshot.docs
-            .map((doc) => AppNotificationModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id))
-            .toList();
-          
-          final filtered = allNotifs.where((notif) {
-            if (user.role == 'admin') return true;
-            
-            if (user.role == 'étudiant') {
-              if (notif.targetType != 'student') return false;
-              bool filiereMatch = notif.filiere == 'tous' || notif.filiere == user.filiere;
-              bool niveauMatch = notif.niveau == 'tous' || notif.niveau == user.niveau;
-              return filiereMatch && niveauMatch;
-            }
-            
-            if (user.role == 'enseignant') {
-              if (notif.targetType != 'teacher') return false;
-              return notif.teacherId == '' || notif.teacherId == user.uid;
-            }
-            
-            return false;
-          }).toList();
+    return _firestore.collection('notifications').snapshots().map((snapshot) {
+      final allNotifs = snapshot.docs
+          .map(
+            (doc) => AppNotificationModel.fromFirestore(
+              doc.data(),
+              doc.id,
+              currentUserId: user.uid,
+            ),
+          )
+          .toList();
 
-          // Tri local
-          filtered.sort((a, b) {
-            final dateA = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            final dateB = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            return dateB.compareTo(dateA);
-          });
-          
-          return filtered;
-        });
+      final filtered = allNotifs.where((notif) {
+        if (user.role == 'admin') {
+          return notif.targetType == 'admin' || notif.targetType == 'all';
+        }
+
+        if (user.role == 'étudiant') {
+          if (notif.targetType != 'student' && notif.targetType != 'all') {
+            return false;
+          }
+          final filiereMatch =
+              notif.filiere == 'tous' || notif.filiere == user.filiere;
+          final niveauMatch =
+              notif.niveau == 'tous' || notif.niveau == user.niveau;
+          return filiereMatch && niveauMatch;
+        }
+
+        if (user.role == 'enseignant') {
+          if (notif.targetType == 'all') return true;
+          if (notif.targetType != 'teacher') return false;
+          return notif.teacherId == '' || notif.teacherId == user.uid;
+        }
+
+        return false;
+      }).toList();
+
+      filtered.sort((a, b) {
+        final dateA = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final dateB = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return dateB.compareTo(dateA);
+      });
+
+      return filtered;
+    });
   }
 
-  Future<void> markAsRead(String notificationId) async {
+  Future<void> markAsRead(String notificationId, String userId) async {
     await _firestore.collection('notifications').doc(notificationId).update({
-      'isRead': true,
+      'readBy': FieldValue.arrayUnion([userId]),
     });
   }
 
   Stream<int> unreadCount(UserModel user) {
-    return getNotificationsForUser(user).map((list) => list.where((n) => !n.isRead).length);
+    return getNotificationsForUser(user)
+        .map((list) => list.where((n) => !n.isRead).length);
   }
 }

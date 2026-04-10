@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/favorite_model.dart';
 
 class FavoriteService {
@@ -40,7 +41,7 @@ class FavoriteService {
         ).toFirestore(),
       );
     } catch (e) {
-      print('Erreur lors de l\'ajout aux favoris: $e');
+      debugPrint('Erreur lors de l\'ajout aux favoris: $e');
       rethrow;
     }
   }
@@ -58,7 +59,7 @@ class FavoriteService {
         await favorite.reference.delete();
       }
     } catch (e) {
-      print('Erreur lors de la suppression des favoris: $e');
+      debugPrint('Erreur lors de la suppression des favoris: $e');
       rethrow;
     }
   }
@@ -73,7 +74,7 @@ class FavoriteService {
 
       return snapshot.docs.map((doc) => FavoriteModel.fromFirestore(doc)).toList();
     } catch (e) {
-      print('Erreur lors de la récupération des favoris: $e');
+      debugPrint('Erreur lors de la récupération des favoris: $e');
       return [];
     }
   }
@@ -88,7 +89,7 @@ class FavoriteService {
           .map((snapshot) =>
               snapshot.docs.map((doc) => FavoriteModel.fromFirestore(doc)).toList());
     } catch (e) {
-      print('Erreur lors de l\'obtention du stream des favoris: $e');
+      debugPrint('Erreur lors de l\'obtention du stream des favoris: $e');
       return Stream.value([]);
     }
   }
@@ -106,7 +107,7 @@ class FavoriteService {
 
       return doc.docs.isNotEmpty;
     } catch (e) {
-      print('Erreur lors de la vérification des favoris: $e');
+      debugPrint('Erreur lors de la vérification des favoris: $e');
       return false;
     }
   }
@@ -121,7 +122,7 @@ class FavoriteService {
 
       return snapshot.count ?? 0;
     } catch (e) {
-      print('Erreur lors du comptage des favoris: $e');
+      debugPrint('Erreur lors du comptage des favoris: $e');
       return 0;
     }
   }

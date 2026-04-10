@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../controllers/auth_controller.dart';
+import '../services/AR_Notification/notification_service.dart';
 
 class JobsScreen extends StatefulWidget {
   const JobsScreen({super.key});
@@ -13,21 +17,42 @@ class _JobsScreenState extends State<JobsScreen> {
       'title': 'Technicien Informatique',
       'department': 'IT',
       'location': 'Campus A',
-      'status': 'Ouvert'
+      'status': 'Ouvert',
     },
     {
       'title': 'Assistant Administratif',
       'department': 'RH',
       'location': 'Campus B',
-      'status': 'Ouvert'
+      'status': 'Ouvert',
     },
     {
       'title': 'Responsable Marketing',
       'department': 'Marketing',
       'location': 'Campus A',
-      'status': 'Fermé'
+      'status': 'Fermé',
     },
   ];
+
+  Future<void> _createJobNotification({
+    required String action,
+    required Map<String, String> job,
+  }) async {
+    final currentUser = context.read<AuthController>().currentUser;
+    final actor = currentUser?.displayName ?? 'Administration';
+    final title = job['title'] ?? 'Emploi';
+    final department = job['department'] ?? 'Département';
+    final location = job['location'] ?? 'Campus';
+    final status = job['status'] ?? 'Ouvert';
+
+    await NotificationService().createNotification(
+      targetType: 'all',
+      filiere: 'tous',
+      niveau: 'tous',
+      title: 'Emploi $action : $title',
+      message: '$department • $location • Statut: $status',
+      adminMessage: 'Action réalisée par $actor',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +89,7 @@ class _JobsScreenState extends State<JobsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -95,8 +120,8 @@ class _JobsScreenState extends State<JobsScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: isOpen
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -113,32 +138,18 @@ class _JobsScreenState extends State<JobsScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(
-                  Icons.business,
-                  size: 16,
-                  color: Colors.grey.shade600,
-                ),
+                Icon(Icons.business, size: 16, color: Colors.grey.shade600),
                 const SizedBox(width: 8),
                 Text(
                   job['department'] ?? 'N/A',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                 ),
                 const SizedBox(width: 20),
-                Icon(
-                  Icons.location_on,
-                  size: 16,
-                  color: Colors.grey.shade600,
-                ),
+                Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
                 const SizedBox(width: 8),
                 Text(
                   job['location'] ?? 'N/A',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                 ),
               ],
             ),
@@ -159,9 +170,7 @@ class _JobsScreenState extends State<JobsScreen> {
                   onPressed: () => _deleteJob(index),
                   icon: const Icon(Icons.delete, size: 18),
                   label: const Text('Supprimer'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.red,
-                  ),
+                  style: TextButton.styleFrom(foregroundColor: Colors.red),
                 ),
               ],
             ),
@@ -171,14 +180,22 @@ class _JobsScreenState extends State<JobsScreen> {
     );
   }
 
-  void _showJobDialog(BuildContext context, [Map<String, String>? job, int? index]) {
+  void _showJobDialog(
+    BuildContext context, [
+    Map<String, String>? job,
+    int? index,
+  ]) {
     final titleController = TextEditingController(text: job?['title'] ?? '');
-    final departmentController = TextEditingController(text: job?['department'] ?? '');
-    final locationController = TextEditingController(text: job?['location'] ?? '');
+    final departmentController = TextEditingController(
+      text: job?['department'] ?? '',
+    );
+    final locationController = TextEditingController(
+      text: job?['location'] ?? '',
+    );
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(job == null ? 'Ajouter un emploi' : 'Modifier l\'emploi'),
         content: SingleChildScrollView(
           child: Column(
@@ -212,28 +229,34 @@ class _JobsScreenState extends State<JobsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Annuler'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final updatedJob = <String, String>{
+                'title': titleController.text,
+                'department': departmentController.text,
+                'location': locationController.text,
+                'status': job?['status'] ?? 'Ouvert',
+              };
+
               if (job == null) {
-                jobs.add({
-                  'title': titleController.text,
-                  'department': departmentController.text,
-                  'location': locationController.text,
-                  'status': 'Ouvert',
-                });
+                jobs.add(updatedJob);
+                await _createJobNotification(action: 'ajouté', job: updatedJob);
               } else {
-                jobs[index!] = {
-                  'title': titleController.text,
-                  'department': departmentController.text,
-                  'location': locationController.text,
-                  'status': job['status'] ?? 'Ouvert',
-                };
+                jobs[index!] = updatedJob;
+                await _createJobNotification(
+                  action: 'mis à jour',
+                  job: updatedJob,
+                );
               }
+
+              if (!mounted) return;
               setState(() {});
-              Navigator.pop(context);
+              if (dialogContext.mounted) {
+                Navigator.pop(dialogContext);
+              }
             },
             child: const Text('Enregistrer'),
           ),
@@ -245,20 +268,25 @@ class _JobsScreenState extends State<JobsScreen> {
   void _deleteJob(int index) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Confirmer la suppression'),
-        content: const Text('Êtes-vous sûr de vouloir supprimer cet emploi?'),
+        content: const Text('Êtes-vous sûr de vouloir supprimer cet emploi ?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Annuler'),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                jobs.removeAt(index);
-              });
-              Navigator.pop(context);
+            onPressed: () async {
+              final job = Map<String, String>.from(jobs[index]);
+              jobs.removeAt(index);
+              await _createJobNotification(action: 'supprimé', job: job);
+
+              if (!mounted) return;
+              setState(() {});
+              if (dialogContext.mounted) {
+                Navigator.pop(dialogContext);
+              }
             },
             child: const Text(
               'Supprimer',

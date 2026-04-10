@@ -22,7 +22,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String? _selectedBuilding;
-  List<String> _selectedEquipment = [];
+  final List<String> _selectedEquipment = [];
 
   @override
   void initState() {
@@ -296,7 +296,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE53935).withOpacity(0.1),
+                    color: const Color(0xFFE53935).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -362,8 +362,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ? FloatingActionButton(
               onPressed: _openAddRoomDialog,
               backgroundColor: const Color(0xFF1E88E5),
-              child: const Icon(Icons.add, color: Colors.white),
               elevation: 4,
+              child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
     );
@@ -392,7 +392,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -677,7 +677,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       spreadRadius: 1,
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -757,7 +757,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       selected: selected,
       onSelected: onSelected,
       backgroundColor: const Color(0xFFF5F7FA),
-      selectedColor: const Color(0xFF1E88E5).withOpacity(0.1),
+      selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.1),
       checkmarkColor: const Color(0xFF1E88E5),
       labelStyle: TextStyle(
         color: selected ? const Color(0xFF1E88E5) : const Color(0xFF1E293B),
@@ -769,7 +769,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         side: BorderSide(
           color: selected 
               ? const Color(0xFF1E88E5) 
-              : Colors.grey.withOpacity(0.3),
+              : Colors.grey.withValues(alpha: 0.3),
         ),
       ),
     );
@@ -788,7 +788,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -801,7 +801,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -870,7 +870,7 @@ class _RoomCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -952,7 +952,7 @@ class _RoomCard extends StatelessWidget {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E88E5).withOpacity(0.1),
+                        color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -966,7 +966,7 @@ class _RoomCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE53935).withOpacity(0.1),
+                        color: const Color(0xFFE53935).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -990,7 +990,7 @@ class _RoomCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E88E5).withOpacity(0.1),
+                    color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Icon(Icons.people, size: 14, color: Color(0xFF1E88E5)),
@@ -1019,10 +1019,10 @@ class _RoomCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF5E35B1).withOpacity(0.1),
+                            color: const Color(0xFF5E35B1).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: const Color(0xFF5E35B1).withOpacity(0.2),
+                              color: const Color(0xFF5E35B1).withValues(alpha: 0.2),
                             ),
                           ),
                           child: Row(

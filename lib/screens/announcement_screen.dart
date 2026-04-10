@@ -91,7 +91,7 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF5E35B1).withOpacity(0.20),
+                    color: const Color(0xFF5E35B1).withValues(alpha: 0.20),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -102,7 +102,7 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(

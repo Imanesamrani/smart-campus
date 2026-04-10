@@ -17,7 +17,7 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
   late RoomController _roomController;
   final TextEditingController _searchController = TextEditingController();
   String? _selectedBuilding;
-  List<String> _selectedEquipment = [];
+  final List<String> _selectedEquipment = [];
   int? _minCapacity;
   int? _maxCapacity;
 
@@ -97,7 +97,7 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -131,19 +131,16 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                         },
                       ),
                       const SizedBox(width: 8),
-                      ..._roomController.availableBuildings
-                          .map((building) => Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: _buildFilterChip(
-                                  label: building,
-                                  selected: _selectedBuilding == building,
-                                  onSelected: (selected) {
-                                    setState(
-                                        () => _selectedBuilding = building);
-                                  },
-                                ),
-                              ))
-                          .toList(),
+                      ..._roomController.availableBuildings.map((building) => Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildFilterChip(
+                              label: building,
+                              selected: _selectedBuilding == building,
+                              onSelected: (selected) {
+                                setState(() => _selectedBuilding = building);
+                              },
+                            ),
+                          )),
                     ],
                   ),
                 ),
@@ -273,7 +270,7 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () {
-                          this._resetFilters();
+                          _resetFilters();
                           Navigator.pop(context);
                         },
                         style: OutlinedButton.styleFrom(
@@ -328,7 +325,7 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
       selected: selected,
       onSelected: onSelected,
       backgroundColor: const Color(0xFFF5F7FA),
-      selectedColor: const Color(0xFF1E88E5).withOpacity(0.1),
+      selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.1),
       checkmarkColor: const Color(0xFF1E88E5),
       labelStyle: TextStyle(
         color: selected ? const Color(0xFF1E88E5) : const Color(0xFF1E293B),
@@ -340,7 +337,7 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
         side: BorderSide(
           color: selected 
               ? const Color(0xFF1E88E5) 
-              : Colors.grey.withOpacity(0.3),
+              : Colors.grey.withValues(alpha: 0.3),
         ),
       ),
     );
@@ -421,7 +418,7 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1E88E5).withOpacity(0.3),
+                            color: const Color(0xFF1E88E5).withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -503,10 +500,10 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.1),
+                                color: Colors.red.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(30),
                                 border: Border.all(
-                                  color: Colors.red.withOpacity(0.3),
+                                  color: Colors.red.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Row(
@@ -588,7 +585,7 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: Colors.grey.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(Icons.search_off,
@@ -652,10 +649,10 @@ class _RoomsListScreenState extends State<RoomsListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E88E5).withOpacity(0.1),
+        color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFF1E88E5).withOpacity(0.3),
+          color: const Color(0xFF1E88E5).withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -758,7 +755,7 @@ class _RoomListItemState extends State<_RoomListItem> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               spreadRadius: 1,
               blurRadius: 8,
               offset: const Offset(0, 2),
@@ -819,8 +816,8 @@ class _RoomListItemState extends State<_RoomListItem> {
                           ),
                           decoration: BoxDecoration(
                             color: widget.room.isAvailable
-                                ? const Color(0xFF43A047).withOpacity(0.1)
-                                : const Color(0xFFE53935).withOpacity(0.1),
+                                ? const Color(0xFF43A047).withValues(alpha: 0.1)
+                                : const Color(0xFFE53935).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -874,8 +871,8 @@ class _RoomListItemState extends State<_RoomListItem> {
               Container(
                 decoration: BoxDecoration(
                   color: _isFavorite 
-                      ? Colors.red.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
+                      ? Colors.red.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(

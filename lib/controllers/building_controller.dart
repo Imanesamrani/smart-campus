@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../models/building.dart';
@@ -50,9 +50,5 @@ class BuildingController extends ChangeNotifier {
       return null;
     }
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
+

@@ -1,12 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import '../firebase_options.dart';
 import '../models/user_model.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Récupérer tous les utilisateurs
+  Future<FirebaseApp> _createSecondaryApp() async {
+    final appName = 'user_mgmt_${DateTime.now().microsecondsSinceEpoch}';
+    return Firebase.initializeApp(
+      name: appName,
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
   Future<List<UserModel>> getAllUsers() async {
     try {
       final querySnapshot = await _firestore.collection('users').get();
@@ -18,7 +26,6 @@ class UserService {
     }
   }
 
-  /// Récupérer les utilisateurs en streaming (en temps réel)
   Stream<List<UserModel>> getUsersStream() {
     return _firestore.collection('users').snapshots().map((snapshot) {
       return snapshot.docs
@@ -27,7 +34,6 @@ class UserService {
     });
   }
 
-  /// Récupérer un utilisateur par UID
   Future<UserModel?> getUserById(String uid) async {
     try {
       final doc = await _firestore.collection('users').doc(uid).get();
@@ -40,7 +46,6 @@ class UserService {
     }
   }
 
-  /// Créer un nouvel utilisateur (par admin)
   Future<String> createUserAsAdmin({
     required String email,
     required String password,
@@ -49,9 +54,13 @@ class UserService {
     String? filiere,
     String? niveau,
   }) async {
+    FirebaseApp? secondaryApp;
+
     try {
-      // Créer l'utilisateur dans Firebase Auth
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
+      secondaryApp = await _createSecondaryApp();
+      final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+
+      final result = await secondaryAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -59,11 +68,9 @@ class UserService {
       final user = result.user;
       if (user == null) throw Exception('Impossible de créer l\'utilisateur');
 
-      // Mettre à jour le profil
       await user.updateDisplayName(displayName);
       await user.reload();
 
-      // Créer le document dans Firestore
       final newUser = UserModel(
         uid: user.uid,
         email: email,
@@ -79,14 +86,19 @@ class UserService {
         notificationToken: null,
       );
 
-      await _firestore.collection('users').doc(user.uid).set(newUser.toFirestore());
+      await _firestore.collection('users').doc(user.uid).set(
+            newUser.toFirestore(),
+          );
       return user.uid;
     } catch (e) {
       throw Exception('Erreur lors de la création de l\'utilisateur: $e');
+    } finally {
+      if (secondaryApp != null) {
+        await secondaryApp.delete();
+      }
     }
   }
 
-  /// Mettre à jour un utilisateur
   Future<void> updateUser(
     String uid, {
     String? displayName,
@@ -95,7 +107,7 @@ class UserService {
     String? niveau,
   }) async {
     try {
-      Map<String, dynamic> updateData = {};
+      final updateData = <String, dynamic>{};
 
       if (displayName != null) updateData['displayName'] = displayName;
       if (role != null) updateData['role'] = role;
@@ -110,24 +122,23 @@ class UserService {
     }
   }
 
-  /// Supprimer un utilisateur
   Future<void> deleteUser(String uid) async {
     try {
-      // Supprimer les favoris de l'utilisateur
-      final favoritesSnapshot =
-          await _firestore.collection('users').doc(uid).collection('favorites').get();
+      final favoritesSnapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('favorites')
+          .get();
       for (final doc in favoritesSnapshot.docs) {
         await doc.reference.delete();
       }
 
-      // Supprimer le document utilisateur
       await _firestore.collection('users').doc(uid).delete();
     } catch (e) {
       throw Exception('Erreur lors de la suppression de l\'utilisateur: $e');
     }
   }
 
-  /// Récupérer les utilisateurs filtrés par rôle
   Future<List<UserModel>> getUsersByRole(String role) async {
     try {
       final querySnapshot = await _firestore
@@ -142,7 +153,6 @@ class UserService {
     }
   }
 
-  /// Compter les utilisateurs par rôle
   Future<Map<String, int>> getUserCountByRole() async {
     try {
       final users = await getAllUsers();

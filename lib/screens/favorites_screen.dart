@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/favorite_controller.dart';
 import '../models/favorite_model.dart';
@@ -91,7 +91,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -126,7 +126,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
           return Column(
             children: [
-              // 🔍 Barre de recherche et filtres
+              // ?? Barre de recherche et filtres
               Container(
                 color: Colors.white,
                 padding: const EdgeInsets.all(20),
@@ -162,7 +162,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ),
                     ),
                     
-                    // 🏢 Filtre par bâtiment
+                    // ?? Filtre par bâtiment
                     if (favoriteController.getAvailableBuildings().isNotEmpty) ...[
                       const SizedBox(height: 16),
                       SizedBox(
@@ -228,7 +228,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 ),
               ),
 
-              // 📋 Liste des favoris
+              // ?? Liste des favoris
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(20),
@@ -265,7 +265,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       selected: selected,
       onSelected: onSelected,
       backgroundColor: const Color(0xFFF5F7FA),
-      selectedColor: const Color(0xFF1E88E5).withOpacity(0.1),
+      selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.1),
       checkmarkColor: const Color(0xFF1E88E5),
       labelStyle: TextStyle(
         color: selected ? const Color(0xFF1E88E5) : const Color(0xFF1E293B),
@@ -277,14 +277,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         side: BorderSide(
           color: selected 
               ? const Color(0xFF1E88E5) 
-              : Colors.grey.withOpacity(0.3),
+              : Colors.grey.withValues(alpha: 0.3),
         ),
       ),
     );
   }
 }
 
-// 🎨 Carte de favori personnalisée
+// ?? Carte de favori personnalisée
 class _FavoriteCard extends StatelessWidget {
   final FavoriteModel favorite;
   final VoidCallback onRemove;
@@ -345,7 +345,7 @@ class _FavoriteCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               spreadRadius: 1,
               blurRadius: 8,
               offset: const Offset(0, 2),
@@ -357,7 +357,7 @@ class _FavoriteCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🏷️ En-tête avec nom et bouton de suppression
+              // ??? En-tête avec nom et bouton de suppression
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -425,7 +425,7 @@ class _FavoriteCard extends StatelessWidget {
                   // Bouton de suppression
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
@@ -441,13 +441,13 @@ class _FavoriteCard extends StatelessWidget {
               
               const SizedBox(height: 16),
               
-              // 👥 Capacité
+              // ?? Capacité
               Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E88E5).withOpacity(0.1),
+                      color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -469,7 +469,7 @@ class _FavoriteCard extends StatelessWidget {
                 ],
               ),
               
-              // 🎛️ Équipements
+              // ??? équipements
               if (favorite.equipment.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Wrap(
@@ -482,10 +482,10 @@ class _FavoriteCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF5E35B1).withOpacity(0.1),
+                              color: const Color(0xFF5E35B1).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: const Color(0xFF5E35B1).withOpacity(0.2),
+                                color: const Color(0xFF5E35B1).withValues(alpha: 0.2),
                               ),
                             ),
                             child: Row(
@@ -514,7 +514,7 @@ class _FavoriteCard extends StatelessWidget {
               
               const SizedBox(height: 12),
               
-              // ⏰ Date d'ajout
+              // ? Date d'ajout
               Row(
                 children: [
                   Icon(
@@ -539,3 +539,5 @@ class _FavoriteCard extends StatelessWidget {
     );
   }
 }
+
+

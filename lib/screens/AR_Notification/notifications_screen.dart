@@ -58,7 +58,7 @@ class NotificationsScreen extends StatelessWidget {
                 ),
                 isThreeLine: true,
                 onTap: () async {
-                  await notificationService.markAsRead(notif.id);
+                  await notificationService.markAsRead(notif.id, user.uid);
 
                   if (!context.mounted) return;
                 },

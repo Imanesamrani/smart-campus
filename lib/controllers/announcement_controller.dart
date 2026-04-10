@@ -58,29 +58,49 @@ class AnnouncementController extends ChangeNotifier {
     try {
       await _service.addAnnouncement(announcement);
 
-      // Création automatique de notifications pour les cibles
-      for (var role in announcement.targetRoles) {
-        String targetType = '';
-        if (role == 'étudiant') {
-          targetType = 'student';
-        } else if (role == 'enseignant') {
-          targetType = 'teacher';
+      for (final role in announcement.targetRoles) {
+        if (role == 'tous') {
+          await _notificationService.createNotification(
+            targetType: 'all',
+            filiere: 'tous',
+            niveau: 'tous',
+            title: "Nouvelle annonce : ${announcement.title}",
+            message: announcement.message,
+            adminMessage: "Publié par ${announcement.author}",
+          );
+          continue;
         }
 
-        if (targetType.isNotEmpty) {
-          // On crée une notification pour chaque filière/niveau ciblés
-          // Si c'est "tous", on passe "tous" au service
-          for (var filiere in announcement.targetFilieres) {
-            for (var niveau in announcement.targetNiveaux) {
-              await _notificationService.createNotification(
-                targetType: targetType,
-                filiere: filiere,
-                niveau: niveau,
-                title: "Nouvelle annonce : ${announcement.title}",
-                message: announcement.message,
-                adminMessage: "Publié par ${announcement.author}",
-              );
-            }
+        if (role == 'admin') {
+          await _notificationService.createNotification(
+            targetType: 'admin',
+            filiere: 'tous',
+            niveau: 'tous',
+            title: "Nouvelle annonce : ${announcement.title}",
+            message: announcement.message,
+            adminMessage: "Publié par ${announcement.author}",
+          );
+          continue;
+        }
+
+        final targetType = role == 'étudiant'
+            ? 'student'
+            : role == 'enseignant'
+                ? 'teacher'
+                : '';
+
+        if (targetType.isEmpty) continue;
+
+        for (final filiere in announcement.targetFilieres) {
+          for (final niveau in announcement.targetNiveaux) {
+            await _notificationService.createNotification(
+              targetType: targetType,
+              filiere: filiere,
+              niveau: niveau,
+              title: "Nouvelle annonce : ${announcement.title}",
+              message: announcement.message,
+              adminMessage: "Publié par ${announcement.author}",
+            );
           }
         }
       }

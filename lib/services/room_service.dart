@@ -1,11 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/room_model.dart';
 
 class RoomService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _collection = 'rooms';
 
-  // 📌 CRÉER une nouvelle salle
+  // ?? CRÉER une nouvelle salle
   Future<String> createRoom(RoomModel room) async {
     try {
       final docRef = await _firestore.collection(_collection).add(room.toFirestore());
@@ -15,7 +15,7 @@ class RoomService {
     }
   }
 
-  // 📝 OBTENIR un salle par ID
+  // ?? OBTENIR un salle par ID
   Future<RoomModel?> getRoomById(String roomId) async {
     try {
       final doc = await _firestore.collection(_collection).doc(roomId).get();
@@ -28,7 +28,7 @@ class RoomService {
     }
   }
 
-  // 📋 OBTENIR toutes les salles
+  // ?? OBTENIR toutes les salles
   Future<List<RoomModel>> getAllRooms() async {
     try {
       final querySnapshot = await _firestore.collection(_collection).get();
@@ -40,7 +40,7 @@ class RoomService {
     }
   }
 
-  // 🏗️ OBTENIR les salles par bâtiment
+  // ??? OBTENIR les salles par bâtiment
   Future<List<RoomModel>> getRoomsByBuilding(String building) async {
     try {
       final querySnapshot = await _firestore
@@ -55,7 +55,7 @@ class RoomService {
     }
   }
 
-  // 🔍 RECHERCHER des salles par nom
+  // ?? RECHERCHER des salles par nom
   Future<List<RoomModel>> searchRooms(String query) async {
     try {
       final querySnapshot = await _firestore.collection(_collection).get();
@@ -74,7 +74,7 @@ class RoomService {
     }
   }
 
-  // 🛠️ MODIFIER une salle
+  // ??? MODIFIER une salle
   Future<void> updateRoom(String roomId, RoomModel room) async {
     try {
       await _firestore.collection(_collection).doc(roomId).update(room.toFirestore());
@@ -83,7 +83,7 @@ class RoomService {
     }
   }
 
-  // 🗑️ SUPPRIMER une salle
+  // ??? SUPPRIMER une salle
   Future<void> deleteRoom(String roomId) async {
     try {
       await _firestore.collection(_collection).doc(roomId).delete();
@@ -92,7 +92,7 @@ class RoomService {
     }
   }
 
-  // 🔴 BASCULER la disponibilité d'une salle
+  // ?? BASCULER la disponibilité d'une salle
   Future<void> toggleRoomAvailability(String roomId, bool isAvailable) async {
     try {
       await _firestore.collection(_collection).doc(roomId).update({
@@ -104,7 +104,7 @@ class RoomService {
     }
   }
 
-  // 📊 OBTENIR les bâtiments disponibles
+  // ?? OBTENIR les bâtiments disponibles
   Future<List<String>> getAvailableBuildings() async {
     try {
       final querySnapshot = await _firestore.collection(_collection).get();
@@ -123,7 +123,7 @@ class RoomService {
     }
   }
 
-  // 🎛️ OBTENIR les équipements disponibles
+  // ??? OBTENIR les équipements disponibles
   Future<List<String>> getAvailableEquipment() async {
     try {
       final querySnapshot = await _firestore.collection(_collection).get();
@@ -167,3 +167,4 @@ class RoomService {
     });
   }
 }
+

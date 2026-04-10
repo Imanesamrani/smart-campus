@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/favorite_model.dart';
 import '../services/favorite_service.dart';
 
@@ -150,3 +150,4 @@ class FavoriteController extends ChangeNotifier {
     return equipment.toList()..sort();
   }
 }
+

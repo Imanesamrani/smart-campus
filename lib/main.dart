@@ -148,7 +148,7 @@ class MyApp extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               elevation: 3,
-              shadowColor: const Color(0xFF0066CC).withOpacity(0.3),
+              shadowColor: const Color(0xFF0066CC).withValues(alpha: 0.3),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               textStyle: const TextStyle(
                 fontSize: 16,
@@ -159,7 +159,7 @@ class MyApp extends StatelessWidget {
 
           cardTheme: CardThemeData(
             elevation: 2,
-            shadowColor: Colors.black.withOpacity(0.08),
+            shadowColor: Colors.black.withValues(alpha: 0.08),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),

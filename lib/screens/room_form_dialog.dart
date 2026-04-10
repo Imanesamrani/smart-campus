@@ -116,7 +116,7 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
 
                         // Bâtiment
                         DropdownButtonFormField<String>(
-                          value: _selectedBuilding.isNotEmpty ? _selectedBuilding : null,
+                          initialValue: _selectedBuilding.isNotEmpty ? _selectedBuilding : null,
                           decoration: InputDecoration(
                             labelText: 'Bâtiment',
                             prefixIcon: const Icon(Icons.location_city),
@@ -230,7 +230,7 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                                 });
                               },
                               backgroundColor: const Color(0xFFF5F7FA),
-                              selectedColor: const Color(0xFF1E88E5).withOpacity(0.1),
+                              selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.1),
                               checkmarkColor: const Color(0xFF1E88E5),
                               labelStyle: TextStyle(
                                 color: isSelected
@@ -257,7 +257,7 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                               _isAvailable = value;
                             });
                           },
-                          activeColor: const Color(0xFF1E88E5),
+                          activeThumbColor: const Color(0xFF1E88E5),
                           contentPadding: EdgeInsets.zero,
                         ),
                         const SizedBox(height: 16), // Espace avant les boutons

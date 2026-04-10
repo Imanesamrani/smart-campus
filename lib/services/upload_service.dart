@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -89,25 +88,6 @@ class UploadService {
       String base64Data = base64Encode(bytes);
       
       // Créer un contenu HTML avec un lien data URL
-      String htmlContent = '''
-<!DOCTYPE html>
-<html>
-<head><title>$fileName</title></head>
-<body>
-  <script>
-    const byteCharacters = atob("$base64Data");
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    window.location.href = url;
-  </script>
-</body>
-</html>
-      ''';
       
       // Uploader ce HTML vers un service (ou le sauvegarder localement)
       // Pour l'instant, on retourne une data URL

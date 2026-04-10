@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/user_controller.dart';
 import '../models/user_model.dart';
@@ -14,12 +14,13 @@ class UserManagementScreen extends StatefulWidget {
 class _UserManagementScreenState extends State<UserManagementScreen> {
   final TextEditingController _searchController = TextEditingController();
   String? _selectedRole;
-  List<String> _availableRoles = ['étudiant', 'enseignant', 'admin'];
+  final List<String> _availableRoles = ['étudiant', 'enseignant', 'admin'];
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<UserController>().loadUsers();
     });
   }
@@ -45,12 +46,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   void _openAddUserDialog() {
+    final userController = context.read<UserController>();
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) => UserFormDialog(
+      builder: (dialogContext) => UserFormDialog(
         isNewUser: true,
         onSave: (userData) async {
-          final userController = context.read<UserController>();
           final success = await userController.createUser(
             email: userData['email'],
             password: userData['password'],
@@ -60,17 +63,19 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             niveau: userData['niveau'],
           );
 
-          if (success && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+          if (!mounted) return;
+
+          if (success) {
+            messenger.showSnackBar(
               const SnackBar(
-                content: Text('✅ Utilisateur créé avec succès'),
+                content: Text('Utilisateur créé avec succès'),
                 backgroundColor: Color(0xFF43A047),
               ),
             );
-          } else if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+          } else {
+            messenger.showSnackBar(
               SnackBar(
-                content: Text('❌ Erreur: ${userController.error}'),
+                content: Text('? Erreur: ${userController.error}'),
                 backgroundColor: const Color(0xFFE53935),
               ),
             );
@@ -79,15 +84,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
     );
   }
-
   void _openEditUserDialog(UserModel user) {
+    final userController = context.read<UserController>();
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) => UserFormDialog(
+      builder: (dialogContext) => UserFormDialog(
         initialUser: user,
         isNewUser: false,
         onSave: (userData) async {
-          final userController = context.read<UserController>();
           final success = await userController.updateUser(
             user.uid,
             displayName: userData['displayName'],
@@ -96,17 +102,19 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             niveau: userData['niveau'],
           );
 
-          if (success && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+          if (!mounted) return;
+
+          if (success) {
+            messenger.showSnackBar(
               const SnackBar(
-                content: Text('✅ Utilisateur modifié avec succès'),
+                content: Text('Utilisateur modifié avec succès'),
                 backgroundColor: Color(0xFF43A047),
               ),
             );
-          } else if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+          } else {
+            messenger.showSnackBar(
               SnackBar(
-                content: Text('❌ Erreur: ${userController.error}'),
+                content: Text('? Erreur: ${userController.error}'),
                 backgroundColor: const Color(0xFFE53935),
               ),
             );
@@ -115,11 +123,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
     );
   }
-
   void _deleteUser(UserModel user) {
+    final userController = context.read<UserController>();
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text(
           'Confirmation',
           style: TextStyle(
@@ -136,7 +146,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFF1E88E5),
             ),
@@ -144,21 +154,22 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
-              final userController = context.read<UserController>();
+              Navigator.pop(dialogContext);
               final success = await userController.deleteUser(user.uid);
 
-              if (success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
+              if (!mounted) return;
+
+              if (success) {
+                messenger.showSnackBar(
                   const SnackBar(
-                    content: Text('✅ Utilisateur supprimé avec succès'),
+                    content: Text('Utilisateur supprimé avec succès'),
                     backgroundColor: Color(0xFF43A047),
                   ),
                 );
-              } else if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
+              } else {
+                messenger.showSnackBar(
                   SnackBar(
-                    content: Text('❌ Erreur: ${userController.error}'),
+                    content: Text('? Erreur: ${userController.error}'),
                     backgroundColor: const Color(0xFFE53935),
                   ),
                 );
@@ -177,7 +188,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -226,7 +236,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE53935).withOpacity(0.1),
+                        color: const Color(0xFFE53935).withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -285,7 +295,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -458,8 +468,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddUserDialog,
         backgroundColor: const Color(0xFF1E88E5),
-        child: const Icon(Icons.person_add, color: Colors.white),
         elevation: 4,
+        child: const Icon(Icons.person_add, color: Colors.white),
       ),
     );
   }
@@ -474,7 +484,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       selected: selected,
       onSelected: onSelected,
       backgroundColor: const Color(0xFFF5F7FA),
-      selectedColor: const Color(0xFF1E88E5).withOpacity(0.1),
+      selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.1),
       checkmarkColor: const Color(0xFF1E88E5),
       labelStyle: TextStyle(
         color: selected ? const Color(0xFF1E88E5) : const Color(0xFF1E293B),
@@ -486,7 +496,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         side: BorderSide(
           color: selected 
               ? const Color(0xFF1E88E5) 
-              : Colors.grey.withOpacity(0.3),
+              : Colors.grey.withValues(alpha: 0.3),
         ),
       ),
     );
@@ -552,7 +562,7 @@ class _UserCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -578,9 +588,7 @@ class _UserCard extends StatelessWidget {
                       end: Alignment.bottomRight,
                       colors: [
                         _getRoleColor(user.role),
-                        _getRoleColor(user.role).withBlue(
-                          _getRoleColor(user.role).blue - 20,
-                        ),
+                        _getRoleColor(user.role).withValues(alpha: 0.92),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -620,7 +628,7 @@ class _UserCard extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: _getRoleColor(user.role).withOpacity(0.1),
+                          color: _getRoleColor(user.role).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -639,7 +647,7 @@ class _UserCard extends StatelessWidget {
                 // Menu d'actions
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: PopupMenuButton<String>(
@@ -738,7 +746,7 @@ class _DetailRow extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Icon(icon, size: 14, color: Colors.grey.shade600),
@@ -767,3 +775,6 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
+
+
+

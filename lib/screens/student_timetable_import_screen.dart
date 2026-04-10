@@ -36,7 +36,7 @@ class StudentTimetableImportScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   spreadRadius: 1,
                   blurRadius: 8,
                   offset: const Offset(0, 2),
@@ -52,7 +52,7 @@ class StudentTimetableImportScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: controller.selectedFiliere,
+                    initialValue: controller.selectedFiliere,
                     decoration: const InputDecoration(
                       hintText: 'Filière',
                       prefixIcon: Icon(Icons.school, color: Color(0xFF1E293B)),
@@ -77,7 +77,7 @@ class StudentTimetableImportScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: controller.selectedNiveau,
+                    initialValue: controller.selectedNiveau,
                     decoration: const InputDecoration(
                       hintText: 'Niveau',
                       prefixIcon: Icon(Icons.trending_up, color: Color(0xFF1E293B)),
@@ -169,9 +169,7 @@ class StudentTimetableImportScreen extends StatelessWidget {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  result == null
-                                      ? '✅ Emploi du temps importé'
-                                      : result,
+                                  result ?? '✅ Emploi du temps importé',
                                 ),
                                 backgroundColor: result == null
                                     ? const Color(0xFF43A047)
@@ -230,7 +228,7 @@ class StudentTimetableImportScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: Colors.grey.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -267,7 +265,7 @@ class StudentTimetableImportScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: Colors.grey.withValues(alpha: 0.1),
                             spreadRadius: 1,
                             blurRadius: 4,
                             offset: const Offset(0, 2),
@@ -278,7 +276,7 @@ class StudentTimetableImportScreen extends StatelessWidget {
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E88E5).withOpacity(0.1),
+                            color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -318,7 +316,7 @@ class StudentTimetableImportScreen extends StatelessWidget {
                         ),
                         trailing: Container(
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
+                            color: Colors.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: IconButton(

@@ -1,5 +1,4 @@
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +19,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
   final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   bool _isBusy = false;
   bool _isCameraInitialized = false;
-  bool _canProcess = true;
+  final bool _canProcess = true;
   RoomModel? _detectedRoom;
   String? _unrecognizedText;
   final DraggableScrollableController _sheetController = DraggableScrollableController();
@@ -206,7 +205,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
         width: 280,
         height: 180,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 2),
           borderRadius: BorderRadius.circular(20),
         ),
         child: const Center(child: Text("Visez le nom de la salle", style: TextStyle(color: Colors.white70))),

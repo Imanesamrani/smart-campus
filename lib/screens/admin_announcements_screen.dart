@@ -65,6 +65,9 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
   }
 
   Future<void> _confirmDelete(String id) async {
+    final announcementController = context.read<AnnouncementController>();
+    final messenger = ScaffoldMessenger.of(context);
+
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -87,12 +90,11 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
     );
 
     if (result == true) {
-      final success =
-          await context.read<AnnouncementController>().deleteAnnouncement(id);
+      final success = await announcementController.deleteAnnouncement(id);
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             success
@@ -147,7 +149,7 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1E88E5).withOpacity(0.25),
+                    color: const Color(0xFF1E88E5).withValues(alpha: 0.25),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -158,7 +160,7 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.18),
+                      color: Colors.white.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
@@ -255,13 +257,14 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                         onEdit: () => _openForm(announcement: announcement),
                         onDelete: () => _confirmDelete(announcement.id),
                         onToggleActive: (value) async {
+                          final messenger = ScaffoldMessenger.of(context);
                           final success = await context
                               .read<AnnouncementController>()
                               .toggleActiveStatus(announcement.id, value);
 
-                          if (!mounted) return;
+                          if (!context.mounted) return;
 
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             SnackBar(
                               content: Text(
                                 success

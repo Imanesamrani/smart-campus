@@ -92,7 +92,7 @@ class MyTimetablesScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
@@ -129,7 +129,7 @@ class MyTimetablesScreen extends StatelessWidget {
   width: double.infinity,
   padding: const EdgeInsets.all(12),
   decoration: BoxDecoration(
-    color: Colors.white.withOpacity(0.16),
+    color: Colors.white.withValues(alpha: 0.16),
     borderRadius: BorderRadius.circular(12),
   ),
   child: Column(

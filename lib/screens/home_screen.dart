@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/auth_controller.dart';
@@ -6,7 +6,6 @@ import '../controllers/favorite_controller.dart';
 import '../models/user_model.dart';
 import '../services/AR_Notification/notification_service.dart';
 import 'AR_Notification/ar_scan_screen.dart';
-import 'AR_Notification/avatar_viewer_screen.dart';
 import 'AR_Notification/campus_digital_twin_screen.dart';
 import 'AR_Notification/notifications_screen.dart';
 import 'admin_announcements_screen.dart';
@@ -56,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _getRoleLabel(String role) {
     switch (role) {
-      case 'étudiant':
+      case 'Étudiant':
         return 'Étudiant';
       case 'enseignant':
         return 'Enseignant';
@@ -65,6 +64,107 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return 'Utilisateur';
     }
+  }
+
+  List<_FeatureItem> _buildFeatureItems(UserModel user) {
+    if (user.role == 'admin') {
+      return const [
+        _FeatureItem(
+          icon: Icons.meeting_room,
+          title: 'Liste des salles',
+          subtitle: 'Voir toutes les salles disponibles',
+          color: Color(0xFF3B82F6),
+          route: RoomsListScreen(),
+        ),
+        _FeatureItem(
+          icon: Icons.favorite,
+          title: 'Mes favoris',
+          subtitle: 'Accéder à vos salles préférées',
+          color: Color(0xFFEF4444),
+          route: FavoritesScreen(),
+        ),
+        _FeatureItem(
+          icon: Icons.blur_on,
+          title: 'Campus 3D',
+          subtitle: 'Ouvrir le campus Unity',
+          color: Color(0xFF14B8A6),
+          route: CampusDigitalTwinScreen(),
+        ),
+        _FeatureItem(
+          icon: Icons.group,
+          title: 'Gérer les utilisateurs',
+          subtitle: 'Administration des comptes',
+          color: Color(0xFFA855F7),
+          route: UserManagementScreen(),
+        ),
+        _FeatureItem(
+          icon: Icons.dashboard_customize,
+          title: 'Gérer les salles',
+          subtitle: 'Ajouter et modifier des salles',
+          color: Color(0xFFF59E0B),
+          route: AdminDashboardScreen(),
+        ),
+        _FeatureItem(
+          icon: Icons.schedule,
+          title: 'Gérer les emplois du temps',
+          subtitle: 'Import et gestion des emplois',
+          color: Color(0xFF8B5CF6),
+          route: AdminTimetableHomeScreen(),
+        ),
+        _FeatureItem(
+          icon: Icons.work_outline,
+          title: 'Gérer les emplois',
+          subtitle: 'Annoncer les postes ouverts',
+          color: Color(0xFF10B981),
+          route: JobsScreen(),
+        ),
+        _FeatureItem(
+          icon: Icons.campaign,
+          title: 'Gérer les annonces',
+          subtitle: 'Publier, éditer et planifier les annonces',
+          color: Color(0xFFEAB308),
+          route: AdminAnnouncementsScreen(),
+        ),
+      ];
+    }
+
+    return const [
+      _FeatureItem(
+        icon: Icons.meeting_room,
+        title: 'Liste des salles',
+        subtitle: 'Voir toutes les salles disponibles',
+        color: Color(0xFF3B82F6),
+        route: RoomsListScreen(),
+      ),
+      _FeatureItem(
+        icon: Icons.favorite,
+        title: 'Mes favoris',
+        subtitle: 'Accéder à vos salles préférées',
+        color: Color(0xFFEF4444),
+        route: FavoritesScreen(),
+      ),
+      _FeatureItem(
+        icon: Icons.blur_on,
+        title: 'Campus 3D',
+        subtitle: 'Ouvrir le campus Unity',
+        color: Color(0xFF14B8A6),
+        route: CampusDigitalTwinScreen(),
+      ),
+      _FeatureItem(
+        icon: Icons.campaign,
+        title: 'Mes annonces',
+        subtitle: 'Voir les annonces qui vous concernent',
+        color: Color(0xFFF59E0B),
+        route: AnnouncementScreen(),
+      ),
+      _FeatureItem(
+        icon: Icons.schedule,
+        title: 'Mes emplois',
+        subtitle: 'Consulter mon emploi du temps',
+        color: Color(0xFF8B5CF6),
+        route: MyTimetablesScreen(),
+      ),
+    ];
   }
 
   @override
@@ -80,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFF1E88E5),
+        selectedItemColor: const Color(0xFF3B82F6),
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() => _selectedIndex = index);
@@ -91,12 +191,12 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.meeting_room),
-            label: 'Salles',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.qr_code_scanner),
             label: 'Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.article_outlined),
+            label: 'Annonces',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
@@ -113,9 +213,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return _buildDashboard(context, user);
       case 1:
-        return const RoomsListScreen();
-      case 2:
         return const ArScanScreen();
+      case 2:
+        return const AnnouncementScreen();
       case 3:
         return const FavoritesScreen();
       case 4:
@@ -126,39 +226,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDashboard(BuildContext context, UserModel user) {
-    return SingleChildScrollView(
+    final items = _buildFeatureItems(user);
+
+    return SafeArea(
       child: Column(
         children: [
           Container(
+            padding: const EdgeInsets.fromLTRB(20, 12, 16, 10),
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(20, 50, 10, 20),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AvatarViewerScreen(user: user),
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: const Color(0xFF3B82F6),
+                  child: Text(
+                    user.displayName.isNotEmpty
+                        ? user.displayName[0].toUpperCase()
+                        : 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 28,
-                    backgroundColor: const Color(0xFF1E88E5),
-                    child: user.photoURL != null
-                        ? ClipOval(
-                            child: Image.network(
-                              user.photoURL!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Text(
-                            user.displayName[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -167,16 +256,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Bonjour, ${user.displayName}!',
+                        'Bonjour, ${user.displayName} !',
                         style: const TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
                         ),
                       ),
-                      Text(
-                        _getRoleLabel(user.role),
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDBEAFE),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          _getRoleLabel(user.role),
+                          style: const TextStyle(
+                            color: Color(0xFF2563EB),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -193,34 +297,91 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       icon: Badge(
+                        isLabelVisible: true,
                         label: Text('$count'),
-                        backgroundColor: count > 0 ? Colors.red : Colors.grey,
                         child: const Icon(
-                          Icons.notifications_outlined,
-                          size: 28,
+                          Icons.notifications_none,
+                          color: Color(0xFF334155),
                         ),
                       ),
                     );
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.logout),
                   onPressed: () => context.read<AuthController>().logout(),
+                  icon: const Icon(Icons.logout, color: Color(0xFF334155)),
                 ),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                _buildMetaverseCard(context),
-                const SizedBox(height: 24),
-                _buildMainFeatureGrid(user),
-                const SizedBox(height: 24),
-                if (user.role == 'étudiant' && user.filiere != null)
-                  _buildStudentInfoCard(user),
-              ],
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (user.role != 'admin') ...[
+                    _buildMetaverseCard(context),
+                    const SizedBox(height: 18),
+                  ],
+                  const Text(
+                    'Fonctionnalités principales',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: items.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      childAspectRatio: 0.92,
+                    ),
+                    itemBuilder: (context, index) =>
+                        _buildFeatureCard(context, items[index]),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFDCFCE7)),
+                    ),
+                    child: const Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 14,
+                          backgroundColor: Color(0xFF22C55E),
+                          child: Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Consultez régulièrement vos annonces et notifications académiques.',
+                            style: TextStyle(
+                              color: Color(0xFF4B5563),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -234,166 +395,148 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0F4C81), Color(0xFF3B82F6)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.22),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'CAMPUS METAVERSE',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              letterSpacing: 1.2,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(999),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Explorez le jumeau numérique 3D et l\'état des salles en direct.',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const CampusDigitalTwinScreen(),
+            child: const Text(
+              'ENSIASD - Taroudant',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.blue,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Campus immersif 3D',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
             ),
-            child: const Text('ENTRER DANS LE METAVERSE'),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            "Explorez le campus, ciblez un bâtiment ou une salle, puis lancez la scène Unity du metaverse directement depuis l'application.",
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CampusDigitalTwinScreen(),
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF0F4C81),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              icon: const Icon(Icons.blur_on),
+              label: const Text(
+                'Ouvrir le campus Unity',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMainFeatureGrid(UserModel user) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.1,
-      children: [
-        _buildGridItem(
-          Icons.meeting_room,
-          'Salles',
-          'Toutes les salles',
-          Colors.blue,
-          const RoomsListScreen(),
-        ),
-        _buildGridItem(
-          Icons.favorite,
-          'Favoris',
-          'Mes préférés',
-          Colors.red,
-          const FavoritesScreen(),
-        ),
-        _buildGridItem(
-          Icons.campaign,
-          'Annonces',
-          'Mes messages',
-          Colors.orange,
-          const AnnouncementScreen(),
-        ),
-        _buildGridItem(
-          Icons.schedule,
-          'Emplois',
-          'Mon planning',
-          Colors.purple,
-          const MyTimetablesScreen(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGridItem(
-    IconData icon,
-    String title,
-    String sub,
-    Color color,
-    Widget route,
-  ) {
-    return GestureDetector(
+  Widget _buildFeatureCard(BuildContext context, _FeatureItem item) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => route),
+        MaterialPageRoute(builder: (_) => item.route),
       ),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
+          border: Border.all(
+            color: const Color(0xFFF1F5F9),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 28),
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: item.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(item.icon, color: item.color, size: 22),
+            ),
+            const Spacer(),
+            Text(
+              item.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF111827),
+                height: 1.2,
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            Text(
-              sub,
-              style: const TextStyle(color: Colors.grey, fontSize: 11),
+              item.subtitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11.5,
+                color: Color(0xFF6B7280),
+                height: 1.3,
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildStudentInfoCard(UserModel user) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.blue[800],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.school, color: Colors.white, size: 40),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Filière: ${user.filiere}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Niveau: ${user.niveau}',
-                style: const TextStyle(color: Colors.white70),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCampusInfoCard() {
-    return const SizedBox.shrink();
   }
 }
 
@@ -403,14 +546,14 @@ class _FeatureItem {
   final String subtitle;
   final Color color;
   final Widget route;
-  final bool isEnabled;
 
-  _FeatureItem({
+  const _FeatureItem({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.color,
     required this.route,
-    this.isEnabled = true,
   });
 }
+
+

@@ -11,6 +11,7 @@ class AppNotificationModel {
   final String adminMessage;
   final String timetableId;
   final DateTime? createdAt;
+  final List<String> readBy;
   final bool isRead;
 
   AppNotificationModel({
@@ -24,11 +25,17 @@ class AppNotificationModel {
     required this.adminMessage,
     required this.timetableId,
     this.createdAt,
+    required this.readBy,
     required this.isRead,
   });
 
   factory AppNotificationModel.fromFirestore(
-      Map<String, dynamic> data, String id) {
+    Map<String, dynamic> data,
+    String id, {
+    String? currentUserId,
+  }) {
+    final readBy = List<String>.from(data['readBy'] ?? const []);
+
     return AppNotificationModel(
       id: id,
       targetType: data['targetType'] ?? '',
@@ -42,7 +49,10 @@ class AppNotificationModel {
       createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : null,
-      isRead: data['isRead'] ?? false,
+      readBy: readBy,
+      isRead: currentUserId != null
+          ? readBy.contains(currentUserId)
+          : (data['isRead'] ?? false),
     );
   }
 }

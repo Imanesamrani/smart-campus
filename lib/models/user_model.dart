@@ -29,7 +29,6 @@ class UserModel {
     this.notificationToken,
   });
 
-  // Convertir un document Firestore en UserModel
   factory UserModel.fromFirestore(Map<String, dynamic> data, String uid) {
     return UserModel(
       uid: uid,
@@ -47,7 +46,6 @@ class UserModel {
     );
   }
 
-  // Convertir UserModel en Map pour Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'email': email,

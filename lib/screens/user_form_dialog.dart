@@ -170,7 +170,7 @@ class _UserFormDialogState extends State<UserFormDialog> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _selectedRole,
+              initialValue: _selectedRole,
               items: _roles.map((role) {
                 String roleLabel = role;
                 if (role == 'étudiant') roleLabel = '👨‍🎓 Étudiant';
@@ -200,7 +200,7 @@ class _UserFormDialogState extends State<UserFormDialog> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedFiliere,
+                initialValue: _selectedFiliere,
                 isExpanded: true,
                 items: _filieres.map((filiere) {
                   return DropdownMenuItem(
@@ -226,7 +226,7 @@ class _UserFormDialogState extends State<UserFormDialog> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedNiveau,
+                initialValue: _selectedNiveau,
                 isExpanded: true,
                 items: _niveaux.map((niveau) {
                   return DropdownMenuItem(

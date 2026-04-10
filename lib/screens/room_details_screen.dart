@@ -30,6 +30,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
   Future<void> _checkIfFavorite() async {
     final favoriteController = context.read<FavoriteController>();
     final isFav = await favoriteController.isFavorite(widget.room.id);
+    if (!mounted) return;
     setState(() {
       _isFavorite = isFav;
     });
@@ -48,6 +49,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
 
     if (_isFavorite) {
       await favoriteController.removeFavorite(widget.room.id);
+      if (!mounted) return;
       setState(() => _isFavorite = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('❌ Retiré des favoris')),
@@ -60,6 +62,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         capacity: widget.room.capacity,
         equipment: widget.room.equipment,
       );
+      if (!mounted) return;
       setState(() => _isFavorite = true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('❤️ Ajouté aux favoris')),
@@ -127,7 +130,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                   // ❤️ Bouton favoris
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E88E5).withOpacity(0.1),
+                      color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
@@ -228,7 +231,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
           gradient: LinearGradient(
             colors: [
               color,
-              color.withBlue(color.blue - 20),
+              color.withValues(alpha: 0.92),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -236,7 +239,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -278,7 +281,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -290,7 +293,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -332,7 +335,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -347,7 +350,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF9800).withOpacity(0.1),
+                  color: const Color(0xFFFF9800).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.description, 
@@ -388,7 +391,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -403,7 +406,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF5E35B1).withOpacity(0.1),
+                  color: const Color(0xFF5E35B1).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.devices, 
@@ -432,10 +435,10 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                 vertical: 6,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFF5E35B1).withOpacity(0.1),
+                color: const Color(0xFF5E35B1).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: const Color(0xFF5E35B1).withOpacity(0.2),
+                  color: const Color(0xFF5E35B1).withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -472,7 +475,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -487,7 +490,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E88E5).withOpacity(0.1),
+                  color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.location_on, 
@@ -554,7 +557,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -566,7 +569,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(Icons.info_outline, 
