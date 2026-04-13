@@ -5,6 +5,7 @@ class Announcement {
   final String title;
   final String message;
   final String author;
+  final String authorId; // Nouvel identifiant de l'auteur
   final DateTime createdAt;
   final DateTime? updatedAt;
   final String type;
@@ -19,6 +20,7 @@ class Announcement {
     required this.title,
     required this.message,
     required this.author,
+    required this.authorId,
     required this.createdAt,
     this.updatedAt,
     required this.type,
@@ -43,6 +45,7 @@ class Announcement {
       title: (data['title'] ?? '').toString(),
       message: (data['message'] ?? '').toString(),
       author: (data['author'] ?? 'Administration').toString(),
+      authorId: (data['authorId'] ?? '').toString(),
       createdAt: createdAtRaw is Timestamp
           ? createdAtRaw.toDate()
           : DateTime.now(),
@@ -73,6 +76,7 @@ class Announcement {
       'title': title,
       'message': message,
       'author': author,
+      'authorId': authorId,
       'createdAt': Timestamp.fromDate(createdAt),
       'type': type,
       'isPinned': isPinned,
@@ -94,6 +98,7 @@ class Announcement {
     String? title,
     String? message,
     String? author,
+    String? authorId,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? type,
@@ -108,6 +113,7 @@ class Announcement {
       title: title ?? this.title,
       message: message ?? this.message,
       author: author ?? this.author,
+      authorId: authorId ?? this.authorId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       type: type ?? this.type,

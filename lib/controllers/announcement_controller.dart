@@ -12,13 +12,13 @@ class AnnouncementController extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  Future<void> loadAllAnnouncementsAdmin() async {
+  Future<void> loadAllAnnouncementsAdmin(String adminId) async {
     try {
       isLoading = true;
       errorMessage = null;
       notifyListeners();
 
-      announcements = await _service.getAllAnnouncementsAdmin();
+      announcements = await _service.getAllAnnouncementsAdmin(adminId);
     } catch (e, stackTrace) {
       errorMessage = "Erreur lors du chargement des annonces : $e";
       debugPrint("loadAllAnnouncementsAdmin ERROR: $e");
@@ -105,7 +105,7 @@ class AnnouncementController extends ChangeNotifier {
         }
       }
 
-      await loadAllAnnouncementsAdmin();
+      await loadAllAnnouncementsAdmin(announcement.authorId);
       return true;
     } catch (e, stackTrace) {
       errorMessage = "Erreur lors de l'ajout : $e";
@@ -116,10 +116,10 @@ class AnnouncementController extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateAnnouncement(Announcement announcement) async {
+  Future<bool> updateAnnouncement(Announcement announcement, String adminId) async {
     try {
       await _service.updateAnnouncement(announcement);
-      await loadAllAnnouncementsAdmin();
+      await loadAllAnnouncementsAdmin(adminId);
       return true;
     } catch (e, stackTrace) {
       errorMessage = "Erreur lors de la modification : $e";
@@ -130,10 +130,10 @@ class AnnouncementController extends ChangeNotifier {
     }
   }
 
-  Future<bool> deleteAnnouncement(String id) async {
+  Future<bool> deleteAnnouncement(String id, String adminId) async {
     try {
       await _service.deleteAnnouncement(id);
-      await loadAllAnnouncementsAdmin();
+      await loadAllAnnouncementsAdmin(adminId);
       return true;
     } catch (e, stackTrace) {
       errorMessage = "Erreur lors de la suppression : $e";
@@ -144,10 +144,10 @@ class AnnouncementController extends ChangeNotifier {
     }
   }
 
-  Future<bool> toggleActiveStatus(String id, bool isActive) async {
+  Future<bool> toggleActiveStatus(String id, bool isActive, String adminId) async {
     try {
       await _service.toggleActiveStatus(id, isActive);
-      await loadAllAnnouncementsAdmin();
+      await loadAllAnnouncementsAdmin(adminId);
       return true;
     } catch (e, stackTrace) {
       errorMessage = "Erreur lors du changement de statut : $e";

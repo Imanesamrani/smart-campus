@@ -77,7 +77,7 @@ Stream<List<TimetableModel>> getTeacherTimetablesAdmin() {
     );
 
     if (fileUrl == null) {
-      throw Exception("Échec de l'upload du fichier");
+      throw Exception("Échec upload fichier (max 700 KB)");
     }
 
     // 2. Créer l'entrée dans Firestore
@@ -110,7 +110,7 @@ Stream<List<TimetableModel>> getTeacherTimetablesAdmin() {
     );
 
     if (fileUrl == null) {
-      throw Exception("Échec de l'upload du fichier");
+      throw Exception("Échec upload fichier (max 700 KB)");
     }
 
     // 2. Créer l'entrée dans Firestore

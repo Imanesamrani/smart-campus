@@ -3,7 +3,6 @@ package com.example.flutter_smart_campus
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.unity3d.player.UnityPlayerGameActivity
 
 object UnityBridge {
     private const val TAG = "UnityBridge"
@@ -24,7 +23,7 @@ object UnityBridge {
         focusRoom: String?,
     ): Boolean {
         return try {
-            val intent = Intent(context, UnityPlayerGameActivity::class.java).apply {
+            val intent = Intent(context, com.unity3d.player.UnityPlayerGameActivity::class.java).apply {
                 putExtra("focusBuilding", focusBuilding)
                 putExtra("focusRoom", focusRoom)
                 addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)

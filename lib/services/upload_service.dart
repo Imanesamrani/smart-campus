@@ -1,99 +1,57 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 
 class UploadService {
-  // Liste de services gratuits (on essaie chacun jusqu'à ce qu'un fonctionne)
-  final List<Map<String, String>> _uploadServices = [
-    {
-      'url': 'https://tmp.ninja/api.php?d=upload-tmp',
-      'field': 'file',
-    },
-    {
-      'url': 'https://file.io/?expires=1w',
-      'field': 'file',
-    },
-    {
-      'url': 'https://transfer.sh',
-      'field': 'file',
-    },
-  ];
-  
+  static const int _maxRawBytes = 700 * 1024; // ~700 KB raw, stays under Firestore 1 MB after base64
+
+  String _extensionToMime(String fileName) {
+    final lower = fileName.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    return 'application/octet-stream';
+  }
+
   Future<String?> uploadFile({
     File? file,
     Uint8List? fileBytes,
     required String fileName,
+    String folder = 'uploads',
   }) async {
-    // Essayer chaque service jusqu'à succès
-    for (var service in _uploadServices) {
-      try {
-        final url = service['url']!;
-        final field = service['field']!;
-        
-        debugPrint('Tentative d\'upload vers: $url');
-        
-        var request = http.MultipartRequest('POST', Uri.parse(url));
-        
-        if (kIsWeb) {
-          if (fileBytes == null) continue;
-          var multipartFile = http.MultipartFile.fromBytes(
-            field,
-            fileBytes,
-            filename: fileName,
-          );
-          request.files.add(multipartFile);
-        } else {
-          if (file == null) continue;
-          var multipartFile = await http.MultipartFile.fromPath(
-            field,
-            file.path,
-            filename: fileName,
-          );
-          request.files.add(multipartFile);
-        }
-
-        var response = await request.send();
-        var responseData = await response.stream.bytesToString();
-        
-        debugPrint('Réponse: $responseData');
-        
-        // Analyser la réponse selon le service
-        if (url.contains('tmp.ninja')) {
-          // tmp.ninja retourne directement l'URL
-          return responseData.trim();
-        } else if (url.contains('file.io')) {
-          final json = jsonDecode(responseData);
-          if (json['success'] == true) {
-            return json['link'];
-          }
-        } else if (url.contains('transfer.sh')) {
-          // transfer.sh retourne l'URL directement
-          return responseData.trim();
-        }
-      } catch (e) {
-        debugPrint('Erreur avec ${service['url']}: $e');
-        continue; // Essayer le service suivant
-      }
-    }
-    
-    // Si tous les services échouent, utiliser une approche alternative
-    return _uploadToGist(fileBytes ?? await file!.readAsBytes(), fileName);
-  }
-
-  // Solution de secours : encoder en base64 et stocker temporairement
-  Future<String?> _uploadToGist(Uint8List bytes, String fileName) async {
     try {
-      // Convertir en base64
-      String base64Data = base64Encode(bytes);
-      
-      // Créer un contenu HTML avec un lien data URL
-      
-      // Uploader ce HTML vers un service (ou le sauvegarder localement)
-      // Pour l'instant, on retourne une data URL
-      return 'data:application/pdf;base64,$base64Data';
+      debugPrint('Encodage fichier pour Firestore: $folder/$fileName');
+
+      Uint8List bytes;
+      if (kIsWeb) {
+        if (fileBytes == null) {
+          debugPrint('Erreur: fileBytes est null pour le Web');
+          return null;
+        }
+        bytes = fileBytes;
+      } else {
+        if (file == null) {
+          debugPrint('Erreur: file est null pour Mobile');
+          return null;
+        }
+        bytes = await file.readAsBytes();
+      }
+
+      if (bytes.length > _maxRawBytes) {
+        debugPrint(
+          'Fichier trop volumineux: ${bytes.length} bytes (max $_maxRawBytes).',
+        );
+        return null;
+      }
+
+      final mime = _extensionToMime(fileName);
+      final base64Data = base64Encode(bytes);
+      final dataUrl = 'data:$mime;base64,$base64Data';
+
+      debugPrint('Encodage reussi. Taille base64: ${base64Data.length}');
+      return dataUrl;
     } catch (e) {
-      debugPrint('Erreur upload secours: $e');
+      debugPrint('Erreur lors de l\'encodage Firestore: $e');
       return null;
     }
   }

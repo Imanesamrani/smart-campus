@@ -30,6 +30,26 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   String? _favoritesLoadedForUserId;
 
+  String _normalizeRole(String role) {
+    final normalized = role.trim().toLowerCase();
+
+    if (normalized == 'admin' || normalized == 'administrateur') {
+      return 'admin';
+    }
+    if (normalized == 'enseignant' || normalized == 'teacher') {
+      return 'enseignant';
+    }
+    if (normalized == 'etudiant' ||
+        normalized == 'étudiant' ||
+        normalized == 'student' ||
+        normalized == 'utilisateur' ||
+        normalized == 'user') {
+      return 'etudiant';
+    }
+
+    return normalized;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -54,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getRoleLabel(String role) {
-    switch (role) {
-      case 'Étudiant':
+    switch (_normalizeRole(role)) {
+      case 'etudiant':
         return 'Étudiant';
       case 'enseignant':
         return 'Enseignant';
@@ -67,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<_FeatureItem> _buildFeatureItems(UserModel user) {
-    if (user.role == 'admin') {
+    if (_normalizeRole(user.role) == 'admin') {
       return const [
         _FeatureItem(
           icon: Icons.meeting_room,
@@ -320,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (user.role != 'admin') ...[
+                  if (_normalizeRole(user.role) != 'admin') ...[
                     _buildMetaverseCard(context),
                     const SizedBox(height: 18),
                   ],

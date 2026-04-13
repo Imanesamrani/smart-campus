@@ -4,12 +4,14 @@ import '../models/announcement.dart';
 class AnnouncementFormDialog extends StatefulWidget {
   final Announcement? announcement;
   final String currentAuthor;
+  final String currentAuthorId;
   final Function(Announcement) onSubmit;
 
   const AnnouncementFormDialog({
     super.key,
     this.announcement,
     required this.currentAuthor,
+    required this.currentAuthorId,
     required this.onSubmit,
   });
 
@@ -162,6 +164,7 @@ class _AnnouncementFormDialogState extends State<AnnouncementFormDialog> {
       title: _titleController.text.trim(),
       message: _messageController.text.trim(),
       author: widget.currentAuthor,
+      authorId: widget.currentAuthorId,
       createdAt: widget.announcement?.createdAt ?? DateTime.now(),
       updatedAt: isEditing ? DateTime.now() : null,
       type: _selectedType,

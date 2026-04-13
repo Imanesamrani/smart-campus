@@ -18,7 +18,7 @@ class _CampusDigitalTwinScreenState extends State<CampusDigitalTwinScreen>
   UnityBridgeAvailability _availability = UnityBridgeAvailability.unavailable;
   bool _isLaunchingUnity = false;
   bool _waitingForUnityReturn = false;
-  DateTime? _launchBlockedUntil;
+  DateTime? _ignoreBackUntil;
   String? _selectedBuilding;
   RoomModel? _selectedRoom;
 
@@ -46,19 +46,13 @@ class _CampusDigitalTwinScreenState extends State<CampusDigitalTwinScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _waitingForUnityReturn) {
       _waitingForUnityReturn = false;
-      _launchBlockedUntil = DateTime.now().add(const Duration(seconds: 5));
+      _ignoreBackUntil = DateTime.now().add(const Duration(milliseconds: 1200));
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        Navigator.of(context).maybePop();
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
       });
     }
-  }
-
-  bool get _isLaunchTemporarilyBlocked {
-    final blockedUntil = _launchBlockedUntil;
-    if (blockedUntil == null) return false;
-    return DateTime.now().isBefore(blockedUntil);
   }
 
   Future<void> _checkUnityAvailability() async {
@@ -91,7 +85,7 @@ class _CampusDigitalTwinScreenState extends State<CampusDigitalTwinScreen>
   }
 
   Future<void> _launchUnityCampus() async {
-    if (_isLaunchTemporarilyBlocked || _isLaunchingUnity) return;
+    if (_isLaunchingUnity) return;
 
     setState(() => _isLaunchingUnity = true);
 
@@ -183,47 +177,58 @@ class _CampusDigitalTwinScreenState extends State<CampusDigitalTwinScreen>
     );
   }
 
+  bool _handleCanPop() {
+    final ignoreUntil = _ignoreBackUntil;
+    if (ignoreUntil != null && DateTime.now().isBefore(ignoreUntil)) {
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FB),
-      appBar: AppBar(
-        title: const Text('Metaverse ENSIASD'),
-        backgroundColor: const Color(0xFF123B63),
-      ),
-      body: Consumer<RoomController>(
-        builder: (context, controller, child) {
-          final rooms = controller.rooms;
-          final buildings = rooms
-              .map((room) => room.building)
-              .where((name) => name.trim().isNotEmpty)
-              .toSet()
-              .toList()
-            ..sort();
+    return PopScope(
+      canPop: _handleCanPop(),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF4F7FB),
+        appBar: AppBar(
+          title: const Text('Metaverse ENSIASD'),
+          backgroundColor: const Color(0xFF123B63),
+        ),
+        body: Consumer<RoomController>(
+          builder: (context, controller, child) {
+            final rooms = controller.rooms;
+            final buildings = rooms
+                .map((room) => room.building)
+                .where((name) => name.trim().isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
 
-          final filteredRooms = _selectedBuilding == null
-              ? rooms
-              : rooms.where((room) => room.building == _selectedBuilding).toList();
+            final filteredRooms = _selectedBuilding == null
+                ? rooms
+                : rooms.where((room) => room.building == _selectedBuilding).toList();
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              await controller.loadRooms();
-              await _checkUnityAvailability();
-            },
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                _buildHeroCard(),
-                const SizedBox(height: 18),
-                _buildBuildingSelector(buildings),
-                const SizedBox(height: 18),
-                _buildRoomFocusCard(filteredRooms),
-                const SizedBox(height: 18),
-                _buildLiveRoomStatus(filteredRooms),
-              ],
-            ),
-          );
-        },
+            return RefreshIndicator(
+              onRefresh: () async {
+                await controller.loadRooms();
+                await _checkUnityAvailability();
+              },
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  _buildHeroCard(),
+                  const SizedBox(height: 18),
+                  _buildBuildingSelector(buildings),
+                  const SizedBox(height: 18),
+                  _buildRoomFocusCard(filteredRooms),
+                  const SizedBox(height: 18),
+                  _buildLiveRoomStatus(filteredRooms),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -282,9 +287,7 @@ class _CampusDigitalTwinScreenState extends State<CampusDigitalTwinScreen>
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: (_isLaunchingUnity || _isLaunchTemporarilyBlocked)
-                  ? null
-                  : _launchUnityCampus,
+              onPressed: _isLaunchingUnity ? null : _launchUnityCampus,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: const Color(0xFF123B63),
@@ -299,9 +302,7 @@ class _CampusDigitalTwinScreenState extends State<CampusDigitalTwinScreen>
               label: Text(
                 _isLaunchingUnity
                     ? 'Ouverture...'
-                    : _isLaunchTemporarilyBlocked
-                        ? 'Retour vers l app...'
-                        : 'Ouvrir le campus Unity',
+                    : 'Ouvrir le campus Unity',
               ),
             ),
           ),
@@ -370,7 +371,7 @@ class _CampusDigitalTwinScreenState extends State<CampusDigitalTwinScreen>
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            initialValue: filteredRooms.any(
+            value: filteredRooms.any(
               (room) => room.name == _selectedRoom?.name,
             )
                 ? _selectedRoom?.name

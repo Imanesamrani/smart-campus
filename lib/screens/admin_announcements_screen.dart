@@ -19,7 +19,11 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AnnouncementController>().loadAllAnnouncementsAdmin();
+      final auth = context.read<AuthController>();
+      final user = auth.currentUser;
+      if (user != null) {
+        context.read<AnnouncementController>().loadAllAnnouncementsAdmin(user.uid);
+      }
     });
   }
 
@@ -33,6 +37,7 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
       builder: (_) => AnnouncementFormDialog(
         announcement: announcement,
         currentAuthor: user.displayName,
+        currentAuthorId: user.uid, // Nouvel argument
         onSubmit: (newAnnouncement) async {
           Navigator.pop(context);
 
@@ -42,7 +47,7 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
           if (announcement == null) {
             success = await controller.addAnnouncement(newAnnouncement);
           } else {
-            success = await controller.updateAnnouncement(newAnnouncement);
+            success = await controller.updateAnnouncement(newAnnouncement, user.uid);
           }
 
           if (!mounted) return;
@@ -65,6 +70,10 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
   }
 
   Future<void> _confirmDelete(String id) async {
+    final auth = context.read<AuthController>();
+    final user = auth.currentUser;
+    if (user == null) return;
+
     final announcementController = context.read<AnnouncementController>();
     final messenger = ScaffoldMessenger.of(context);
 
@@ -90,7 +99,7 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
     );
 
     if (result == true) {
-      final success = await announcementController.deleteAnnouncement(id);
+      final success = await announcementController.deleteAnnouncement(id, user.uid);
 
       if (!mounted) return;
 
@@ -132,7 +141,12 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
         ),
       ),
       body: RefreshIndicator(
-        onRefresh: () => controller.loadAllAnnouncementsAdmin(),
+        onRefresh: () async {
+          final user = context.read<AuthController>().currentUser;
+          if (user != null) {
+            await controller.loadAllAnnouncementsAdmin(user.uid);
+          }
+        },
         child: Column(
           children: [
             Container(
@@ -257,10 +271,13 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                         onEdit: () => _openForm(announcement: announcement),
                         onDelete: () => _confirmDelete(announcement.id),
                         onToggleActive: (value) async {
+                          final user = context.read<AuthController>().currentUser;
+                          if (user == null) return;
+
                           final messenger = ScaffoldMessenger.of(context);
                           final success = await context
                               .read<AnnouncementController>()
-                              .toggleActiveStatus(announcement.id, value);
+                              .toggleActiveStatus(announcement.id, value, user.uid);
 
                           if (!context.mounted) return;
 

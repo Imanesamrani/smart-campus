@@ -29,23 +29,51 @@ class TimetableViewerScreen extends StatefulWidget {
 class _TimetableViewerScreenState extends State<TimetableViewerScreen> {
   bool _isLoading = false;
 
-  bool get _isDataUrl =>
-      widget.fileUrl.startsWith('data:application/pdf;base64,');
+  bool get _isDataUrl => widget.fileUrl.startsWith('data:');
 
-  bool get _isHttpUrl =>
-      widget.fileUrl.startsWith('http://') ||
-      widget.fileUrl.startsWith('https://');
+  bool get _isHttpUrl {
+    final url = widget.fileUrl.toLowerCase().trim();
+    if (url.isEmpty) return false;
 
-  Future<File> _saveBase64PdfToTempFile() async {
-    final base64String = widget.fileUrl.replaceFirst(
-      'data:application/pdf;base64,',
-      '',
-    );
+    return url.startsWith('http');
+  }
+
+  bool get _isHtmlBlob {
+    final url = widget.fileUrl.trimLeft().toLowerCase();
+    return url.startsWith('<!doctype') || url.startsWith('<html') || url.startsWith('<head');
+  }
+
+  String _extensionFromMime(String? mime, String fallback) {
+    switch (mime) {
+      case 'application/pdf':
+        return 'pdf';
+      case 'image/jpeg':
+        return 'jpg';
+      case 'image/jpg':
+        return 'jpg';
+      case 'image/png':
+        return 'png';
+      case 'image/gif':
+        return 'gif';
+      case 'image/webp':
+        return 'webp';
+      default:
+        return fallback;
+    }
+  }
+
+  Future<File> _saveBase64ToTempFile() async {
+    final match = RegExp(r'^data:([^;]+);base64,').firstMatch(widget.fileUrl);
+    final mime = match?.group(1);
+    final base64String = widget.fileUrl.substring(match?.group(0)?.length ?? 0);
 
     final bytes = base64Decode(base64String);
     final dir = await getTemporaryDirectory();
     final safeName = widget.fileName.replaceAll(RegExp(r'[^\w\-.]'), '_');
-    final file = File('${dir.path}/$safeName');
+    final extFromName = safeName.contains('.') ? safeName.split('.').last : null;
+    final ext = extFromName ?? _extensionFromMime(mime, 'bin');
+    final fileName = safeName.endsWith('.$ext') ? safeName : '$safeName.$ext';
+    final file = File('${dir.path}/$fileName');
 
     await file.writeAsBytes(bytes, flush: true);
     return file;
@@ -55,11 +83,21 @@ class _TimetableViewerScreenState extends State<TimetableViewerScreen> {
     if (_isLoading) return;
     setState(() => _isLoading = true);
 
+    debugPrint('Tentative d\'ouverture de l\'URL : ${widget.fileUrl}');
+
     try {
-      if (kIsWeb) {
+      if (_isHtmlBlob) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lien du fichier invalide ou introuvable'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else if (kIsWeb) {
         openPdfInWeb(widget.fileUrl, widget.fileName);
       } else if (_isDataUrl) {
-        final file = await _saveBase64PdfToTempFile();
+        final file = await _saveBase64ToTempFile();
         final result = await OpenFilex.open(file.path);
 
         if (!mounted) return;
@@ -111,15 +149,23 @@ class _TimetableViewerScreenState extends State<TimetableViewerScreen> {
     setState(() => _isLoading = true);
 
     try {
-      if (kIsWeb) {
+      if (_isHtmlBlob) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lien du fichier invalide ou introuvable'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else if (kIsWeb) {
         downloadPdfInWeb(widget.fileUrl, widget.fileName);
       } else if (_isDataUrl) {
-        final file = await _saveBase64PdfToTempFile();
+        final file = await _saveBase64ToTempFile();
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('PDF enregistré: ${file.path}'),
+            content: Text('Fichier enregistré: ${file.path}'),
             backgroundColor: Colors.green,
           ),
         );
@@ -292,3 +338,4 @@ class _TimetableViewerScreenState extends State<TimetableViewerScreen> {
     );
   }
 }
+

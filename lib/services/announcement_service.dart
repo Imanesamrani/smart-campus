@@ -7,8 +7,10 @@ class AnnouncementService {
   CollectionReference<Map<String, dynamic>> get _announcementsRef =>
       _firestore.collection('announcements');
 
-  Future<List<Announcement>> getAllAnnouncementsAdmin() async {
-    final snapshot = await _announcementsRef.get();
+  Future<List<Announcement>> getAllAnnouncementsAdmin(String adminId) async {
+    final snapshot = await _announcementsRef
+        .where('authorId', isEqualTo: adminId)
+        .get();
 
     final list = snapshot.docs
         .map((doc) => Announcement.fromJson(doc.data(), doc.id))

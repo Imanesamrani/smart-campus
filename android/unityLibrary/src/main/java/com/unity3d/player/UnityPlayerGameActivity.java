@@ -2,12 +2,17 @@ package com.unity3d.player;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.graphics.Color;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 
 import androidx.core.view.ViewCompat;
 
@@ -15,6 +20,8 @@ import com.google.androidgamesdk.GameActivity;
 
 public class UnityPlayerGameActivity extends GameActivity implements IUnityPlayerLifecycleEvents, IUnityPermissionRequestSupport, IUnityPlayerSupport
 {
+    private boolean returningToFlutter = false;
+
     class GameActivitySurfaceView extends InputEnabledSurfaceView
     {
         GameActivity mGameActivity;
@@ -76,15 +83,17 @@ public class UnityPlayerGameActivity extends GameActivity implements IUnityPlaye
         // Note: we cannot initialize in onCreate (after super.onCreate), because game activity native thread would be already started and unity runtime initialized
         //       we also cannot initialize before super.onCreate since frameLayout is not yet available.
         mUnityPlayer = new UnityPlayerForGameActivity(this, frameLayout, mSurfaceView, this);
+        attachReturnButton(frameLayout);
     }
 
     @Override
     public void onUnityPlayerUnloaded() {
-        moveTaskToBack(true);
+        returnToFlutter();
     }
 
     @Override
     public void onUnityPlayerQuitted() {
+        returnToFlutter();
     }
 
     // Quit Unity
@@ -150,6 +159,12 @@ public class UnityPlayerGameActivity extends GameActivity implements IUnityPlaye
     }
 
     @Override
+    public void onBackPressed()
+    {
+        returnToFlutter();
+    }
+
+    @Override
     @TargetApi(Build.VERSION_CODES.M)
     public void requestPermissions(PermissionRequest request)
     {
@@ -160,5 +175,49 @@ public class UnityPlayerGameActivity extends GameActivity implements IUnityPlaye
     {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         mUnityPlayer.permissionResponse(this, requestCode, permissions, grantResults);
+    }
+
+    private void attachReturnButton(FrameLayout frameLayout)
+    {
+        ImageButton backButton = new ImageButton(this);
+        backButton.setImageResource(android.R.drawable.ic_menu_revert);
+        backButton.setBackgroundColor(Color.parseColor("#CC123B63"));
+        backButton.setColorFilter(Color.WHITE);
+        backButton.setContentDescription("Retour");
+        backButton.setPadding(dp(12), dp(12), dp(12), dp(12));
+        backButton.setElevation(dp(6));
+        backButton.setOnClickListener(v -> returnToFlutter());
+
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(48), dp(48));
+        params.gravity = Gravity.TOP | Gravity.START;
+        params.topMargin = dp(24);
+        params.leftMargin = dp(16);
+
+        backButton.setLayoutParams(params);
+        backButton.setVisibility(View.VISIBLE);
+        backButton.bringToFront();
+        frameLayout.addView(backButton);
+    }
+
+    private int dp(int value)
+    {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                value,
+                getResources().getDisplayMetrics()
+        );
+    }
+
+    private void returnToFlutter()
+    {
+        if (returningToFlutter) {
+            return;
+        }
+        returningToFlutter = true;
+
+        Intent launchIntent = new Intent();
+        launchIntent.setClassName(getPackageName(), getPackageName() + ".MainActivity");
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(launchIntent);
     }
 }
