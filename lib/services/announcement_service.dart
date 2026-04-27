@@ -7,6 +7,37 @@ class AnnouncementService {
   CollectionReference<Map<String, dynamic>> get _announcementsRef =>
       _firestore.collection('announcements');
 
+  String _normalizeValue(String? value) {
+    return (value ?? '').trim().toLowerCase();
+  }
+
+  String _normalizeRole(String? role) {
+    final normalized = _normalizeValue(role);
+
+    if (normalized == 'admin' || normalized == 'administrateur') {
+      return 'admin';
+    }
+    if (normalized == 'enseignant' || normalized == 'teacher') {
+      return 'enseignant';
+    }
+    if (normalized == 'etudiant' ||
+        normalized == 'étudiant' ||
+        normalized == 'student' ||
+        normalized == 'utilisateur' ||
+        normalized == 'user') {
+      return 'étudiant';
+    }
+
+    return normalized;
+  }
+
+  bool _matchesValue(List<String> values, String? expected) {
+    final normalizedValues = values.map(_normalizeValue).toList();
+
+    return normalizedValues.contains('tous') ||
+        (expected != null && normalizedValues.contains(_normalizeValue(expected)));
+  }
+
   Future<List<Announcement>> getAllAnnouncementsAdmin(String adminId) async {
     final snapshot = await _announcementsRef
         .where('authorId', isEqualTo: adminId)
@@ -32,26 +63,26 @@ class AnnouncementService {
     String? niveau,
   }) async {
     final snapshot = await _announcementsRef.get();
+    final normalizedRole = _normalizeRole(role);
 
     final list = snapshot.docs
         .map((doc) => Announcement.fromJson(doc.data(), doc.id))
         .where((announcement) {
           if (!announcement.isActive) return false;
 
-          final roleMatch = announcement.targetRoles.contains('tous') ||
-              announcement.targetRoles.contains(role);
+          final normalizedTargetRoles =
+              announcement.targetRoles.map(_normalizeRole).toList();
+
+          final roleMatch = normalizedTargetRoles.contains('tous') ||
+              normalizedTargetRoles.contains(normalizedRole);
 
           if (!roleMatch) return false;
 
-          if (role == 'étudiant') {
+          if (normalizedRole == 'étudiant') {
             final filiereMatch =
-                announcement.targetFilieres.contains('tous') ||
-                    (filiere != null &&
-                        announcement.targetFilieres.contains(filiere));
-
-            final niveauMatch = announcement.targetNiveaux.contains('tous') ||
-                (niveau != null &&
-                    announcement.targetNiveaux.contains(niveau));
+                _matchesValue(announcement.targetFilieres, filiere);
+            final niveauMatch =
+                _matchesValue(announcement.targetNiveaux, niveau);
 
             return filiereMatch && niveauMatch;
           }

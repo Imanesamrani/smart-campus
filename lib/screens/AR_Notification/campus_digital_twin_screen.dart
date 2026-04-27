@@ -371,7 +371,7 @@ class _CampusDigitalTwinScreenState extends State<CampusDigitalTwinScreen>
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: filteredRooms.any(
+            initialValue: filteredRooms.any(
               (room) => room.name == _selectedRoom?.name,
             )
                 ? _selectedRoom?.name

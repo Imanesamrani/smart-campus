@@ -76,6 +76,7 @@ class NotificationService {
       'timetableId': timetableId,
       'createdAt': FieldValue.serverTimestamp(),
       'readBy': <String>[],
+      'deletedBy': <String>[],
     });
   }
 
@@ -92,6 +93,10 @@ class NotificationService {
           .toList();
 
       final filtered = allNotifs.where((notif) {
+        if (notif.deletedBy.contains(user.uid)) {
+          return false;
+        }
+
         if (user.role == 'admin') {
           return notif.targetType == 'admin' || notif.targetType == 'all';
         }
@@ -129,6 +134,12 @@ class NotificationService {
   Future<void> markAsRead(String notificationId, String userId) async {
     await _firestore.collection('notifications').doc(notificationId).update({
       'readBy': FieldValue.arrayUnion([userId]),
+    });
+  }
+
+  Future<void> deleteForUser(String notificationId, String userId) async {
+    await _firestore.collection('notifications').doc(notificationId).update({
+      'deletedBy': FieldValue.arrayUnion([userId]),
     });
   }
 

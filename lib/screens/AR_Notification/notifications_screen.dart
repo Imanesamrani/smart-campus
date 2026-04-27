@@ -35,33 +35,68 @@ class NotificationsScreen extends StatelessWidget {
             itemCount: notifications.length,
             itemBuilder: (context, index) {
               final notif = notifications[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor:
-                      notif.isRead ? Colors.grey.shade300 : Colors.blue.shade100,
-                  child: Icon(
-                    Icons.notifications,
-                    color: notif.isRead ? Colors.grey : Colors.blue,
+              return Dismissible(
+                key: ValueKey(notif.id),
+                direction: DismissDirection.startToEnd,
+                background: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  child: const Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        'Supprimer',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                title: Text(notif.title),
-                subtitle: Text(
-                  '${notif.message}\n${notif.adminMessage}',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: Text(
-                  notif.createdAt != null
-                      ? DateFormat('dd/MM/yyyy').format(notif.createdAt!)
-                      : '',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                isThreeLine: true,
-                onTap: () async {
-                  await notificationService.markAsRead(notif.id, user.uid);
+                onDismissed: (_) async {
+                  await notificationService.deleteForUser(notif.id, user.uid);
 
                   if (!context.mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Notification supprimée')),
+                  );
                 },
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        notif.isRead ? Colors.grey.shade300 : Colors.blue.shade100,
+                    child: Icon(
+                      Icons.notifications,
+                      color: notif.isRead ? Colors.grey : Colors.blue,
+                    ),
+                  ),
+                  title: Text(notif.title),
+                  subtitle: Text(
+                    '${notif.message}\n${notif.adminMessage}',
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Text(
+                    notif.createdAt != null
+                        ? DateFormat('dd/MM/yyyy').format(notif.createdAt!)
+                        : '',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  isThreeLine: true,
+                  onTap: () async {
+                    await notificationService.markAsRead(notif.id, user.uid);
+
+                    if (!context.mounted) return;
+                  },
+                ),
               );
             },
           );

@@ -40,10 +40,17 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.initialRoom?.name ?? '');
-    _floorController = TextEditingController(text: widget.initialRoom?.floor.toString() ?? '');
-    _capacityController = TextEditingController(text: widget.initialRoom?.capacity.toString() ?? '');
-    _descriptionController = TextEditingController(text: widget.initialRoom?.description ?? '');
-    _selectedBuilding = widget.initialRoom?.building ?? (widget.buildings.isNotEmpty ? widget.buildings.first : '');
+    _floorController = TextEditingController(
+      text: widget.initialRoom?.floor.toString() ?? '',
+    );
+    _capacityController = TextEditingController(
+      text: widget.initialRoom?.capacity.toString() ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.initialRoom?.description ?? '',
+    );
+    _selectedBuilding = widget.initialRoom?.building ??
+        (widget.buildings.isNotEmpty ? widget.buildings.first : '');
     _selectedEquipment = List.from(widget.initialRoom?.equipment ?? []);
     _isAvailable = widget.initialRoom?.isAvailable ?? true;
   }
@@ -59,13 +66,16 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final dialogWidth = screenSize.width < 600 ? screenSize.width - 32 : 500.0;
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
-        width: 500,
+        width: dialogWidth,
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.9,
         ),
@@ -77,7 +87,6 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Titre
                 Text(
                   widget.initialRoom == null
                       ? 'Ajouter une salle'
@@ -89,13 +98,10 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Contenu défilable
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        // Nom
                         TextFormField(
                           controller: _nameController,
                           decoration: InputDecoration(
@@ -113,10 +119,10 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                           },
                         ),
                         const SizedBox(height: 16),
-
-                        // Bâtiment
                         DropdownButtonFormField<String>(
-                          initialValue: _selectedBuilding.isNotEmpty ? _selectedBuilding : null,
+                          initialValue: _selectedBuilding.isNotEmpty
+                              ? _selectedBuilding
+                              : null,
                           decoration: InputDecoration(
                             labelText: 'Bâtiment',
                             prefixIcon: const Icon(Icons.location_city),
@@ -143,8 +149,6 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                           },
                         ),
                         const SizedBox(height: 16),
-
-                        // Étage
                         TextFormField(
                           controller: _floorController,
                           decoration: InputDecoration(
@@ -166,8 +170,6 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                           },
                         ),
                         const SizedBox(height: 16),
-
-                        // Capacité
                         TextFormField(
                           controller: _capacityController,
                           decoration: InputDecoration(
@@ -189,8 +191,6 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                           },
                         ),
                         const SizedBox(height: 16),
-
-                        // Description
                         TextFormField(
                           controller: _descriptionController,
                           decoration: InputDecoration(
@@ -203,8 +203,6 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                           maxLines: 3,
                         ),
                         const SizedBox(height: 16),
-
-                        // Équipements
                         const Text(
                           'Équipements',
                           style: TextStyle(
@@ -230,7 +228,9 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                                 });
                               },
                               backgroundColor: const Color(0xFFF5F7FA),
-                              selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.1),
+                              selectedColor: const Color(0xFF1E88E5).withValues(
+                                alpha: 0.1,
+                              ),
                               checkmarkColor: const Color(0xFF1E88E5),
                               labelStyle: TextStyle(
                                 color: isSelected
@@ -241,8 +241,6 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                           }).toList(),
                         ),
                         const SizedBox(height: 16),
-
-                        // Disponibilité
                         SwitchListTile(
                           title: const Text(
                             'Disponible',
@@ -260,15 +258,15 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                           activeThumbColor: const Color(0xFF1E88E5),
                           contentPadding: EdgeInsets.zero,
                         ),
-                        const SizedBox(height: 16), // Espace avant les boutons
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
                 ),
-
-                // Boutons (fixes en bas avec largeur limitée)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 12,
+                  runSpacing: 12,
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
@@ -277,10 +275,8 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                       ),
                       child: const Text('Annuler'),
                     ),
-                    const SizedBox(width: 16),
-                    // Le bouton est maintenant dans une colonne avec largeur limitée
                     SizedBox(
-                      width: 100, // Largeur fixe pour éviter l'infini
+                      width: 130,
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
@@ -293,7 +289,8 @@ class _RoomFormDialogState extends State<RoomFormDialog> {
                               equipment: _selectedEquipment,
                               description: _descriptionController.text,
                               isAvailable: _isAvailable,
-                              createdAt: widget.initialRoom?.createdAt ?? DateTime.now(),
+                              createdAt:
+                                  widget.initialRoom?.createdAt ?? DateTime.now(),
                               updatedAt: DateTime.now(),
                             );
                             widget.onSave(room);

@@ -12,6 +12,7 @@ class AppNotificationModel {
   final String timetableId;
   final DateTime? createdAt;
   final List<String> readBy;
+  final List<String> deletedBy;
   final bool isRead;
 
   AppNotificationModel({
@@ -26,6 +27,7 @@ class AppNotificationModel {
     required this.timetableId,
     this.createdAt,
     required this.readBy,
+    required this.deletedBy,
     required this.isRead,
   });
 
@@ -35,6 +37,7 @@ class AppNotificationModel {
     String? currentUserId,
   }) {
     final readBy = List<String>.from(data['readBy'] ?? const []);
+    final deletedBy = List<String>.from(data['deletedBy'] ?? const []);
 
     return AppNotificationModel(
       id: id,
@@ -50,6 +53,7 @@ class AppNotificationModel {
           ? (data['createdAt'] as Timestamp).toDate()
           : null,
       readBy: readBy,
+      deletedBy: deletedBy,
       isRead: currentUserId != null
           ? readBy.contains(currentUserId)
           : (data['isRead'] ?? false),

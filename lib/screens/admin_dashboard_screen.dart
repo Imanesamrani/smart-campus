@@ -4,7 +4,9 @@ import '../controllers/auth_controller.dart';
 import '../controllers/room_controller.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/building_controller.dart'; // ← NOUVEAU
+import '../models/building.dart';
 import '../models/room_model.dart';
+import 'building_form_dialog.dart';
 import 'room_form_dialog.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -68,6 +70,61 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       
       return matchesSearch && matchesBuilding && matchesEquipment;
     }).toList();
+  }
+
+  void _openAddBuildingDialog() {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => BuildingFormDialog(
+        onSave: (building) async {
+          final messenger = ScaffoldMessenger.of(context);
+          final success = await _buildingController.addBuilding(
+            Building(
+              id: building.id,
+              name: building.name,
+              code: building.code,
+              address: building.address,
+              latitude: building.latitude,
+              longitude: building.longitude,
+              floors: building.floors,
+              description: building.description,
+              imageUrl: building.imageUrl,
+              openingHours: building.openingHours,
+              services: building.services,
+            ),
+          );
+
+          if (!dialogContext.mounted) return;
+
+          if (success) {
+            if (Navigator.canPop(dialogContext)) {
+              Navigator.pop(dialogContext);
+            }
+
+            if (mounted) {
+              setState(() {
+                _selectedBuilding = building.name;
+              });
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text('✅ Bâtiment ajouté avec succès'),
+                  backgroundColor: Color(0xFF43A047),
+                ),
+              );
+            }
+          } else {
+            ScaffoldMessenger.of(dialogContext).showSnackBar(
+              SnackBar(
+                content: Text('❌ Erreur: ${_buildingController.error}'),
+                backgroundColor: const Color(0xFFE53935),
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
  void _openAddRoomDialog() async {
@@ -411,21 +468,44 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _openAddRoomDialog,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Ajouter une salle'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E88E5),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _openAddBuildingDialog,
+                        icon: const Icon(Icons.apartment),
+                        label: const Text('Ajouter un bâtiment'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0F766E),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      ElevatedButton.icon(
+                        onPressed: _openAddRoomDialog,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Ajouter une salle'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E88E5),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -509,6 +589,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ),
                   
                   // 📊 Statistiques
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _openAddBuildingDialog,
+                          icon: const Icon(Icons.apartment),
+                          label: const Text('Ajouter bâtiment'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF0F766E),
+                            side: const BorderSide(color: Color(0xFF0F766E)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _openAddRoomDialog,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Ajouter salle'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(0, 48),
+                            backgroundColor: const Color(0xFF1E88E5),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

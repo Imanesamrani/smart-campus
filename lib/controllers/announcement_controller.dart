@@ -12,6 +12,24 @@ class AnnouncementController extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
+  String _normalizeRole(String role) {
+    final normalized = role.trim().toLowerCase();
+
+    if (normalized == 'admin' || normalized == 'administrateur') {
+      return 'admin';
+    }
+    if (normalized == 'enseignant' || normalized == 'teacher') {
+      return 'enseignant';
+    }
+    if (normalized == 'etudiant' ||
+        normalized == 'étudiant' ||
+        normalized == 'student') {
+      return 'étudiant';
+    }
+
+    return normalized;
+  }
+
   Future<void> loadAllAnnouncementsAdmin(String adminId) async {
     try {
       isLoading = true;
@@ -58,7 +76,9 @@ class AnnouncementController extends ChangeNotifier {
     try {
       await _service.addAnnouncement(announcement);
 
-      for (final role in announcement.targetRoles) {
+      for (final rawRole in announcement.targetRoles) {
+        final role = _normalizeRole(rawRole);
+
         if (role == 'tous') {
           await _notificationService.createNotification(
             targetType: 'all',

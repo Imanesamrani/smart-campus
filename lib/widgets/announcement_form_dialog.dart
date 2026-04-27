@@ -279,6 +279,7 @@ class _AnnouncementFormDialogState extends State<AnnouncementFormDialog> {
                     _roleChip('tous', 'Tous'),
                     _roleChip('étudiant', 'Étudiants'),
                     _roleChip('enseignant', 'Enseignants'),
+                    _roleChip('admin', 'Admins'),
                   ],
                 ),
                 if (_isStudentTarget) ...[

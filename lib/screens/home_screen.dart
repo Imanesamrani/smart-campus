@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../controllers/announcement_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/favorite_controller.dart';
 import '../models/user_model.dart';
@@ -71,6 +72,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _favoritesLoadedForUserId = currentUser.uid;
     favoriteController.loadFavorites();
+  }
+
+  Future<void> _refreshAnnouncements() async {
+    final authController = context.read<AuthController>();
+    final currentUser = authController.currentUser;
+
+    if (currentUser == null) return;
+
+    await context.read<AnnouncementController>().loadAnnouncementsForUser(
+      role: currentUser.role,
+      filiere: currentUser.filiere,
+      niveau: currentUser.niveau,
+    );
   }
 
   String _getRoleLabel(String role) {
@@ -204,6 +218,9 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() => _selectedIndex = index);
+          if (index == 2) {
+            _refreshAnnouncements();
+          }
           if (index == 3) {
             _ensureFavoritesLoaded(forceReload: true);
           }
